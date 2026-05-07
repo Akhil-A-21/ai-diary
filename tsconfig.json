@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node"
+  },
+  "include": ["lib/**/*", "artifacts/api-server/**/*", "drizzle.config.ts"],
+  "exclude": ["node_modules", "artifacts/ai-diary"]
+}

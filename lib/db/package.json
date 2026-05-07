@@ -1,0 +1,17 @@
+{
+  "name": "@workspace/db",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "push": "drizzle-kit push"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.39.1",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.4",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.3"
+  }
+}
