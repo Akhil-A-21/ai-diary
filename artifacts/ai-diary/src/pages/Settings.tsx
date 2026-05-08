@@ -2,13 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, Shield, User, Sun, Moon, Lock,
-  Mail, Clock, Loader2, CheckCircle2, AlertCircle, Send, Smartphone, BellOff
+  Mail, Clock, Loader2, CheckCircle2, AlertCircle, Send, Smartphone, BellOff,
+  FileDown
 } from "lucide-react";
-import { usePreferences, useUpdatePreferences, useSendTestEmail } from "../hooks/useApi";
+import { usePreferences, useUpdatePreferences, useSendTestEmail, useDiaryEntries, useMoodTrends, useEmotionPatterns } from "../hooks/useApi";
 import { toast } from "../hooks/use-toast";
 import AppLockSettings from "../components/AppLockSettings";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
+import { exportDiaryPdf } from "../lib/exportDiaryPdf";
 
 // ─── Push notification helpers ───────────────────────────────────────────────
 
@@ -112,11 +114,16 @@ export default function Settings() {
   const updatePrefs = useUpdatePreferences();
   const sendTestEmail = useSendTestEmail();
 
+  const { data: allEntries = [] } = useDiaryEntries();
+  const { data: moodTrends = [] } = useMoodTrends();
+  const { data: emotionPatterns } = useEmotionPatterns();
+
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [testEmailState, setTestEmailState] = useState<BtnState>("idle");
   const [pushState, setPushState] = useState<"unknown" | "unsupported" | "denied" | "subscribed" | "unsubscribed">("unknown");
   const [testPushState, setTestPushState] = useState<BtnState>("idle");
   const [pushLoading, setPushLoading] = useState(false);
+  const [pdfState, setPdfState] = useState<BtnState>("idle");
 
   const { data: pinStatus, refetch: refetchPin } = useQuery({
     queryKey: ["pin-status"],
@@ -158,6 +165,27 @@ export default function Settings() {
       toast({ title: "Settings saved" });
     } catch {
       toast({ title: "Failed to save", variant: "destructive" });
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setPdfState("loading");
+    try {
+      const patterns = emotionPatterns?.patterns ?? [];
+      await exportDiaryPdf(
+        user?.name ?? user?.email ?? "User",
+        allEntries,
+        moodTrends,
+        patterns,
+      );
+      setPdfState("ok");
+      setTimeout(() => setPdfState("idle"), 4000);
+      toast({ title: "PDF downloaded!" });
+    } catch (err) {
+      console.error(err);
+      setPdfState("err");
+      setTimeout(() => setPdfState("idle"), 4000);
+      toast({ title: "Failed to generate PDF", variant: "destructive" });
     }
   };
 
@@ -448,6 +476,74 @@ export default function Settings() {
             </div>
           </div>
         ) : null}
+      </SectionCard>
+
+      {/* ── Export ── */}
+      <SectionCard title="Export Your Diary" icon={<FileDown size={15} />}>
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Download a beautifully formatted PDF of your entire diary — every entry with its mood, summary, triggers, and your mood analytics charts.
+          </p>
+
+          {/* Preview of what's included */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { icon: "📅", label: "Day & Date", sub: "Each entry with day of week" },
+              { icon: "💜", label: "Mood & Score", sub: "Color-coded mood for each day" },
+              { icon: "📝", label: "Summary", sub: "AI-generated daily summary" },
+              { icon: "⚡", label: "Triggers", sub: "Key emotional triggers" },
+              { icon: "📈", label: "Line Chart", sub: "Mood timeline over time" },
+              { icon: "🥧", label: "Pie Chart", sub: "Emotion pattern breakdown" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
+                style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.12)" }}
+              >
+                <span className="text-base flex-shrink-0">{item.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-white">{item.label}</p>
+                  <p className="text-xs text-muted-foreground leading-tight mt-0.5">{item.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats & download button */}
+          <div className="flex items-center justify-between pt-1">
+            <div>
+              <p className="text-sm font-medium text-white">Download PDF Report</p>
+              <p className="text-xs mt-0.5 text-muted-foreground">
+                {allEntries.length > 0
+                  ? `${allEntries.length} entr${allEntries.length === 1 ? "y" : "ies"} ready to export`
+                  : "No entries yet — start recording to export"}
+              </p>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleExportPdf}
+              disabled={pdfState === "loading" || allEntries.length === 0}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+              style={{
+                background: pdfState === "ok"
+                  ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                  : pdfState === "err"
+                  ? "linear-gradient(135deg,#ef4444,#dc2626)"
+                  : "linear-gradient(135deg,hsl(var(--primary)),#a855f7)",
+                color: "#fff",
+              }}
+            >
+              {pdfState === "loading" && <Loader2 size={14} className="animate-spin" />}
+              {pdfState === "ok"      && <CheckCircle2 size={14} />}
+              {pdfState === "err"     && <AlertCircle size={14} />}
+              {pdfState === "idle"    && <FileDown size={14} />}
+              {pdfState === "loading" ? "Generating…"
+                : pdfState === "ok"  ? "Downloaded!"
+                : pdfState === "err" ? "Failed"
+                : "Download PDF"}
+            </motion.button>
+          </div>
+        </div>
       </SectionCard>
 
       {/* ── App Lock ── */}
