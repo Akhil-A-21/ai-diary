@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,6 +12,7 @@ import {
 } from "../hooks/useApi";
 import { getMoodEmoji } from "../lib/utils";
 import { BreathingModal } from "../components/breathing-modal";
+import { StreakMilestoneModal, shouldShowMilestone, markMilestoneShown } from "../components/streak-milestone-modal";
 import { toast } from "../hooks/use-toast";
 import { cn } from "../lib/utils";
 
@@ -39,6 +40,20 @@ export default function Home() {
   const [generatedMessage, setGeneratedMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [breathingOpen, setBreathingOpen] = useState(false);
+  const [milestoneOpen, setMilestoneOpen] = useState(false);
+
+  useEffect(() => {
+    if (!streak) return;
+    const currentStreak = streak.streak;
+    if (shouldShowMilestone(currentStreak)) {
+      // Slight delay so the page renders first
+      const t = setTimeout(() => {
+        setMilestoneOpen(true);
+        markMilestoneShown(currentStreak);
+      }, 900);
+      return () => clearTimeout(t);
+    }
+  }, [streak]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -65,6 +80,12 @@ export default function Home() {
   return (
     <div className="space-y-5 pb-8">
       <BreathingModal open={breathingOpen} onClose={() => setBreathingOpen(false)} />
+      {milestoneOpen && streak && (
+        <StreakMilestoneModal
+          streak={streak.streak}
+          onDismiss={() => setMilestoneOpen(false)}
+        />
+      )}
 
       {/* ── Header ── */}
       <div className="flex items-start justify-between pt-1">
