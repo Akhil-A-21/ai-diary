@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
+import fs from "fs";
 import diaryRouter from "./routes/diary";
 import goalsRouter from "./routes/goals";
 import gratitudeRouter from "./routes/gratitude";
@@ -17,10 +18,14 @@ import { authMiddleware } from "./middleware/auth";
 const app = express();
 const PORT = process.env.PORT || 8080;
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+fs.mkdirSync(path.join(UPLOAD_DIR, "videos"), { recursive: true });
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Serve saved video files
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 // Apply auth middleware to all /api routes (verifies Google token when present)
 app.use("/api", authMiddleware);

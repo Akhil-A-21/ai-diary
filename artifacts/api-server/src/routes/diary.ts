@@ -12,6 +12,7 @@ import os from "os";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
 const openai = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: "https://api.groq.com/openai/v1" });
+const VIDEO_DIR = path.join(process.cwd(), "uploads", "videos");
 
 router.get("/entries", async (req: Request, res: Response) => {
   try {
@@ -100,6 +101,21 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     // The lang field is an ISO 639-1 code (e.g. "ml", "hi", "en") sent from the frontend.
     // req.body may be undefined if multer skips body parsing (no/empty multipart body).
     const recordingLang: string = ((req.body as any)?.lang as string) || "en";
+
+    // ── Save the video file to disk ──
+    let savedVideoUrl: string | null = null;
+    if (req.file && req.file.buffer.length > 0) {
+      try {
+        fs.mkdirSync(VIDEO_DIR, { recursive: true });
+        const filename = `${entryId}-${Date.now()}.webm`;
+        const filePath = path.join(VIDEO_DIR, filename);
+        fs.writeFileSync(filePath, req.file.buffer);
+        savedVideoUrl = `/uploads/videos/${filename}`;
+        console.log(`Video saved: ${filePath}`);
+      } catch (saveErr: any) {
+        console.error("Video save failed:", saveErr?.message);
+      }
+    }
 
     if (req.file) {
       try {
@@ -207,16 +223,19 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     }
 
     // ── Step 3: Persist to DB ──
+    const updateData: any = {
+      transcript,
+      mood: analysis.mood,
+      moodScore: analysis.moodScore,
+      energyLevel: analysis.energyLevel,
+      summary: analysis.summary,
+      triggers: analysis.triggers,
+    };
+    if (savedVideoUrl) updateData.videoUrl = savedVideoUrl;
+
     const [updated] = await db
       .update(diaryEntries)
-      .set({
-        transcript,
-        mood: analysis.mood,
-        moodScore: analysis.moodScore,
-        energyLevel: analysis.energyLevel,
-        summary: analysis.summary,
-        triggers: analysis.triggers,
-      })
+      .set(updateData)
       .where(and(eq(diaryEntries.id, entryId), eq(diaryEntries.userEmail, userEmail)))
       .returning();
 
