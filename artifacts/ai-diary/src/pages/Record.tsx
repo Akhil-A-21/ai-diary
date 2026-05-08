@@ -188,6 +188,7 @@ export default function Record() {
 
       const formData = new FormData();
       formData.append("video", recordedBlob, "diary.webm");
+      formData.append("lang", selectedLang);
       // Send browser transcript — backend skips Whisper if this is present
       if (finalTranscript) {
         formData.append("transcript", finalTranscript);

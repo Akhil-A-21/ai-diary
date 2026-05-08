@@ -144,18 +144,23 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       return { mood: bestMood, moodScore: bestScore, energyLevel: energyMap[bestMood] ?? 5 };
     };
 
-    const keywordAnalysis = transcriptionError ? null : detectMoodFromText(transcript);
+    const recordingLang: string = (req.body.lang as string) || "en-US";
+    const isEnglish = recordingLang.startsWith("en");
+    const keywordAnalysis = (transcriptionError || !isEnglish) ? null : detectMoodFromText(transcript);
 
     // Build a readable summary from the transcript without needing GPT
     const buildFallbackSummary = (text: string): string => {
+      // For non-English: return the raw transcript sentences as the summary
       const sentences = text
-        .replace(/([.!?])\s+/g, "$1\n")
+        .replace(/([.!?।]\s+)/g, "$1\n")
         .split("\n")
         .map((s) => s.trim())
-        .filter((s) => s.length > 15);
-      if (sentences.length === 0) return text.length > 200 ? text.slice(0, 200) + "…" : text;
-      // Pick up to 3 sentences that best represent the entry
-      const picked = sentences.slice(0, 3).join(" ");
+        .filter((s) => s.length > 5);
+      const core = sentences.length > 0
+        ? sentences.slice(0, 3).join(" ")
+        : (text.length > 240 ? text.slice(0, 240) + "…" : text);
+      if (!isEnglish) return core;
+      // English: add a mood-aware opener
       const mood = keywordAnalysis?.mood ?? "reflective";
       const moodPhrases: Record<string, string> = {
         happy: "You seemed in great spirits as you shared",
@@ -168,8 +173,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
         reflective: "In a thoughtful mood, you shared",
       };
       const opener = moodPhrases[mood] ?? "You shared";
-      // Clean up the transcript a bit: lowercase first word after opener
-      const firstSentence = sentences[0].replace(/^I /, "that you ");
+      const firstSentence = sentences[0]?.replace(/^I /, "that you ") ?? core;
       return `${opener}: ${firstSentence}${sentences.length > 1 ? " " + sentences.slice(1, 3).join(" ") : ""}`;
     };
 
@@ -187,7 +191,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       const analysisResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are an empathetic emotional intelligence AI that understands any language including Malayalam, Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Urdu, and English. Analyze this diary entry (which may be in any language) and return JSON with: mood (string: happy/sad/anxious/calm/energized/reflective/grateful), moodScore (1-10), energyLevel (1-10), summary (2-3 warm empathetic sentences ALWAYS written in English regardless of the input language), triggers (array of strings in English). Return ONLY valid JSON, no markdown." },
+          { role: "system", content: "You are an empathetic emotional intelligence AI fluent in all languages including Malayalam, Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Urdu, and English. Analyze this diary entry and return JSON with: mood (string: happy/sad/anxious/calm/energized/reflective/grateful), moodScore (1-10), energyLevel (1-10), summary (2-3 warm empathetic sentences written in the EXACT SAME language as the diary entry — if it is Malayalam write in Malayalam, if Hindi write in Hindi, etc.), triggers (array of 1-3 short strings in the same language as the diary entry). Return ONLY valid JSON, no markdown." },
           { role: "user", content: transcript },
         ],
       });
