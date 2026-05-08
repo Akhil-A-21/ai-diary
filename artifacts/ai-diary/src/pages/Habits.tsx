@@ -51,8 +51,8 @@ export default function Habits() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Habits</h1>
-          <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Build consistency, one day at a time</p>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Habits</h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Build consistency, one day at a time</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}

@@ -37,8 +37,8 @@ export default function Analytics() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Analytics</h1>
-        <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Understand your emotional landscape</p>
+        <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Analytics</h1>
+        <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Understand your emotional landscape</p>
       </div>
 
       {/* Resilience Score */}

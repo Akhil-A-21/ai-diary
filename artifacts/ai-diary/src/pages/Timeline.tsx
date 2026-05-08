@@ -26,8 +26,8 @@ export default function Timeline() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Timeline</h1>
-          <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>All your diary entries</p>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Timeline</h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>All your diary entries</p>
         </div>
         <Link href="/record">
           <motion.button

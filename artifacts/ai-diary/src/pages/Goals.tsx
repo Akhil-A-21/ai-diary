@@ -176,8 +176,8 @@ export default function Goals() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Goals</h1>
-          <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Set and track your aspirations</p>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Goals</h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Set and track your aspirations</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}

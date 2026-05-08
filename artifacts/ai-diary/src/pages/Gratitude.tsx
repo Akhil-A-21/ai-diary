@@ -50,8 +50,8 @@ export default function Gratitude() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Gratitude Journal</h1>
-          <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Three things you're grateful for today</p>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Gratitude Journal</h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Three things you're grateful for today</p>
         </div>
         {streak > 0 && (
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: "hsl(var(--secondary))" }}>

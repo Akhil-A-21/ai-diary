@@ -71,8 +71,8 @@ export default function Chat() {
             <Sparkles size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-semibold">Aura</h1>
-            <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Your emotional support companion</p>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Aura</h1>
+            <p className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Your emotional support companion</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5 text-xs" style={{ color: "#22c55e" }}>
             <div className="w-2 h-2 rounded-full bg-green-500" />

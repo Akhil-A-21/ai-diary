@@ -41,8 +41,8 @@ export default function Pixels() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Year in Pixels</h1>
-          <p className="text-sm mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Every day, coloured by your mood</p>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Year in Pixels</h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Every day, coloured by your mood</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setYear(y => y - 1)} className="p-1.5 rounded-lg border" style={{ borderColor: "hsl(var(--border))" }}>

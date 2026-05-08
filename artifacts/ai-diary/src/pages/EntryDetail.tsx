@@ -67,7 +67,7 @@ export default function EntryDetail() {
 
       {/* Title */}
       <div>
-        <h1 className="text-2xl font-semibold">{entry.title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight leading-snug" style={{ fontFamily: "Playfair Display, serif" }}>{entry.title}</h1>
         <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>{formatDate(entry.entryDate)}</p>
       </div>
 
