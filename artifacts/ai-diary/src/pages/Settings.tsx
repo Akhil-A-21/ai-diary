@@ -118,7 +118,9 @@ export default function Settings() {
   const { data: moodTrends = [] } = useMoodTrends();
   const { data: emotionPatterns } = useEmotionPatterns();
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">(
+    () => document.documentElement.classList.contains("dark") ? "dark" : "light"
+  );
   const [testEmailState, setTestEmailState] = useState<BtnState>("idle");
   const [pushState, setPushState] = useState<"unknown" | "unsupported" | "denied" | "subscribed" | "unsubscribed">("unknown");
   const [testPushState, setTestPushState] = useState<BtnState>("idle");
@@ -156,6 +158,7 @@ export default function Settings() {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
     document.documentElement.classList.toggle("dark", next === "dark");
+    localStorage.setItem("ai-diary-theme", next);
   };
 
   const handleUpdatePrefs = async (updates: Record<string, unknown>) => {

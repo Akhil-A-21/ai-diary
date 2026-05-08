@@ -6,8 +6,13 @@ import { AuthProvider } from "./context/AuthContext";
 import App from "./App";
 import "./index.css";
 
-// Force dark mode globally
-document.documentElement.classList.add("dark");
+// Apply saved theme before first paint — defaults to dark
+const saved = localStorage.getItem("ai-diary-theme");
+if (saved === "light") {
+  document.documentElement.classList.remove("dark");
+} else {
+  document.documentElement.classList.add("dark");
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
