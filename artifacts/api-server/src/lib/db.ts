@@ -76,6 +76,9 @@ export const userPreferences = pgTable("user_preferences", {
   reminderEnabled: boolean("reminder_enabled").default(true),
   inactivityAlertEnabled: boolean("inactivity_alert_enabled").default(true),
   friendEmail: text("friend_email"),
+  timezone: text("timezone").default("UTC"),
+  lastLoginAt: timestamp("last_login_at"),
+  lastReminderDate: text("last_reminder_date"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

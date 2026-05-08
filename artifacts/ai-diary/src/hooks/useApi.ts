@@ -314,7 +314,15 @@ export interface UserPreferences {
   reminderEnabled: boolean;
   inactivityAlertEnabled: boolean;
   friendEmail?: string;
+  timezone?: string;
+  lastLoginAt?: string;
+  lastReminderDate?: string;
 }
+
+export const useSendTestEmail = () =>
+  useMutation({
+    mutationFn: () => apiFetch<{ success: boolean }>("/notifications/test", { method: "POST" }),
+  });
 
 export interface ResilienceData {
   score: number;

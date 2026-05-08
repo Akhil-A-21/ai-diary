@@ -12,6 +12,8 @@ router.get("/", async (req: Request, res: Response) => {
     if (!prefs) {
       [prefs] = await db.insert(userPreferences).values({ userEmail }).returning();
     }
+    // Update last login time on every load (used by inactivity scheduler)
+    await db.update(userPreferences).set({ lastLoginAt: new Date() }).where(eq(userPreferences.userEmail, userEmail));
     res.json(prefs);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch preferences" });
@@ -21,13 +23,22 @@ router.get("/", async (req: Request, res: Response) => {
 router.put("/", async (req: Request, res: Response) => {
   try {
     const userEmail = getUserEmail(req);
-    const { reminderTime, reminderEnabled, inactivityAlertEnabled, friendEmail } = req.body;
+    const { reminderTime, reminderEnabled, inactivityAlertEnabled, friendEmail, timezone } = req.body;
     const existing = await db.select().from(userPreferences).where(eq(userPreferences.userEmail, userEmail));
     if (existing.length === 0) {
-      const [prefs] = await db.insert(userPreferences).values({ userEmail, reminderTime, reminderEnabled, inactivityAlertEnabled, friendEmail }).returning();
+      const [prefs] = await db.insert(userPreferences).values({
+        userEmail, reminderTime, reminderEnabled, inactivityAlertEnabled, friendEmail, timezone
+      }).returning();
       return res.json(prefs);
     }
-    const [prefs] = await db.update(userPreferences).set({ reminderTime, reminderEnabled, inactivityAlertEnabled, friendEmail }).where(eq(userPreferences.userEmail, userEmail)).returning();
+    const updateData: Record<string, unknown> = {};
+    if (reminderTime !== undefined) updateData.reminderTime = reminderTime;
+    if (reminderEnabled !== undefined) updateData.reminderEnabled = reminderEnabled;
+    if (inactivityAlertEnabled !== undefined) updateData.inactivityAlertEnabled = inactivityAlertEnabled;
+    if (friendEmail !== undefined) updateData.friendEmail = friendEmail;
+    if (timezone !== undefined) updateData.timezone = timezone;
+
+    const [prefs] = await db.update(userPreferences).set(updateData).where(eq(userPreferences.userEmail, userEmail)).returning();
     res.json(prefs);
   } catch (err) {
     res.status(500).json({ error: "Failed to update preferences" });
