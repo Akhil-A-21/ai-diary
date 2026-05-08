@@ -214,46 +214,62 @@ export default function Record() {
 
   // ── Done ──
   if (stage === "done" && analysis) {
+    const aiUnavailable = analysis.transcriptionError;
     return (
       <div className="max-w-lg mx-auto py-10 space-y-6">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
-          <CheckCircle2 size={64} className="mx-auto mb-4" style={{ color: "#22c55e" }} />
+          <CheckCircle2 size={64} className="mx-auto mb-4" style={{ color: aiUnavailable ? "#f59e0b" : "#22c55e" }} />
           <h1 className="font-display text-3xl font-bold mb-1 text-white">Entry Saved!</h1>
-          <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>Your diary has been transcribed and analysed by Aura</p>
+          <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>
+            {aiUnavailable
+              ? "Your recording is saved — AI analysis is temporarily unavailable"
+              : "Your diary has been transcribed and analysed by Aura"}
+          </p>
         </motion.div>
 
-        <div className="glass rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Mood</p>
-            <span className="text-sm font-semibold capitalize">{analysis.mood}</span>
+        {/* AI unavailable notice */}
+        {aiUnavailable && (
+          <div className="glass rounded-xl px-4 py-3 flex items-start gap-3 border border-amber-500/20">
+            <AlertCircle size={16} className="flex-shrink-0 mt-0.5 text-amber-400" />
+            <div>
+              <p className="text-sm font-medium text-amber-300">Transcription unavailable</p>
+              <p className="text-xs mt-0.5" style={{ color: "hsl(240 8% 60%)" }}>
+                The OpenAI API key has run out of credits. Once topped up, future entries will be transcribed and analysed automatically.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Mood score</p>
-            <span className="text-sm font-semibold">{analysis.moodScore}/10</span>
-          </div>
-          {analysis.energyLevel && (
+        )}
+
+        {!aiUnavailable && (
+          <div className="glass rounded-2xl p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Energy</p>
-              <span className="text-sm font-semibold">{analysis.energyLevel}/10</span>
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Mood</p>
+              <span className="text-sm font-semibold capitalize">{analysis.mood}</span>
             </div>
-          )}
-          {analysis.summary && (
-            <div className="border-t pt-3" style={{ borderColor: "hsl(240 12% 20%)" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "hsl(240 8% 50%)" }}>AI Summary</p>
-              <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 75%)" }}>
-                {analysis.summary}
-              </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Mood score</p>
+              <span className="text-sm font-semibold">{analysis.moodScore}/10</span>
             </div>
-          )}
-          {analysis.transcript && (
-            <div className="border-t pt-3" style={{ borderColor: "hsl(240 12% 20%)" }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "hsl(240 8% 50%)" }}>Transcript</p>
-              <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
-                {analysis.transcript}
-              </p>
-            </div>
-          )}
-        </div>
+            {analysis.energyLevel && (
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Energy</p>
+                <span className="text-sm font-semibold">{analysis.energyLevel}/10</span>
+              </div>
+            )}
+            {analysis.summary && (
+              <div className="border-t pt-3" style={{ borderColor: "hsl(240 12% 20%)" }}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "hsl(240 8% 50%)" }}>AI Summary</p>
+                <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 75%)" }}>{analysis.summary}</p>
+              </div>
+            )}
+            {analysis.transcript && (
+              <div className="border-t pt-3" style={{ borderColor: "hsl(240 12% 20%)" }}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "hsl(240 8% 50%)" }}>Transcript</p>
+                <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>{analysis.transcript}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button onClick={() => setLocation(`/entry/${entryId}`)}

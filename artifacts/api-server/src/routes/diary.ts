@@ -231,7 +231,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       });
     } catch {}
 
-    res.json({ ...updated, analysis });
+    res.json({ ...updated, analysis, transcriptionError });
   } catch (err: any) {
     console.error("Analyze route error:", err?.message || err);
     console.error("Stack:", err?.stack);
