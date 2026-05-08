@@ -1,5 +1,5 @@
 import { Route, Switch, useLocation } from "wouter";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Record from "./pages/Record";
@@ -18,18 +18,46 @@ import SearchPage from "./pages/Search";
 import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./context/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import LockScreen from "./components/LockScreen";
 
-function ProtectedApp() {
+const SESSION_UNLOCK_KEY = (email: string) => `ai_diary_unlocked_${email}`;
+
+function ProtectedApp({ userEmail }: { userEmail: string }) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const [lockChecked, setLockChecked] = useState(false);
+  const [locked, setLocked] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      setLocation("/login");
-    }
+    if (!isLoading && !user) setLocation("/login");
   }, [user, isLoading, setLocation]);
 
-  if (isLoading) {
+  // Check PIN lock status on mount
+  useEffect(() => {
+    if (!userEmail) return;
+    const alreadyUnlocked = sessionStorage.getItem(SESSION_UNLOCK_KEY(userEmail));
+    if (alreadyUnlocked) {
+      setLockChecked(true);
+      setLocked(false);
+      return;
+    }
+    fetch("/api/pin")
+      .then((r) => r.json())
+      .then((data: { enabled: boolean }) => {
+        if (data.enabled) {
+          setLocked(true);
+        }
+        setLockChecked(true);
+      })
+      .catch(() => setLockChecked(true));
+  }, [userEmail]);
+
+  const handleUnlock = () => {
+    sessionStorage.setItem(SESSION_UNLOCK_KEY(userEmail), "1");
+    setLocked(false);
+  };
+
+  if (isLoading || !lockChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div
@@ -41,6 +69,8 @@ function ProtectedApp() {
   }
 
   if (!user) return null;
+
+  if (locked) return <LockScreen onUnlock={handleUnlock} />;
 
   return (
     <Layout>
@@ -70,13 +100,10 @@ export default function App() {
   const prevEmailRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && user && location === "/login") {
-      setLocation("/");
-    }
+    if (!isLoading && user && location === "/login") setLocation("/");
   }, [user, isLoading, location, setLocation]);
 
-  // Clear all cached query data whenever the logged-in user changes
-  // so a re-login always fetches fresh data for the correct account.
+  // Clear query cache when user account changes so fresh data is always fetched
   useEffect(() => {
     if (isLoading) return;
     const currentEmail = user?.email ?? null;
@@ -91,8 +118,10 @@ export default function App() {
       <Switch>
         <Route path="/login" component={Login} />
         <Route>
-          {/* key forces a full remount — and therefore a fresh data fetch — when the user account changes */}
-          <ProtectedApp key={user?.email ?? "guest"} />
+          <ProtectedApp
+            key={user?.email ?? "guest"}
+            userEmail={user?.email ?? ""}
+          />
         </Route>
       </Switch>
       <Toaster />

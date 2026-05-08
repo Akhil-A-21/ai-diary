@@ -1,14 +1,24 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Shield, User, Sun, Moon, Save } from "lucide-react";
+import { Bell, Shield, User, Sun, Moon, Save, Lock } from "lucide-react";
 import { usePreferences, useUpdatePreferences } from "../hooks/useApi";
 import { toast } from "../hooks/use-toast";
+import AppLockSettings from "../components/AppLockSettings";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Settings() {
   const { data: prefs } = usePreferences();
   const updatePrefs = useUpdatePreferences();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [userEmail, setUserEmail] = useState(localStorage.getItem("userEmail") || "demo@aivideodiary.app");
+
+  const { data: pinStatus, refetch: refetchPin } = useQuery({
+    queryKey: ["pin-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/pin");
+      return res.json() as Promise<{ enabled: boolean }>;
+    },
+  });
 
   const handleSaveEmail = () => {
     localStorage.setItem("userEmail", userEmail);
@@ -160,10 +170,23 @@ export default function Settings() {
         </SectionCard>
       )}
 
+      {/* App Lock */}
+      <SectionCard title="App Lock" icon={<Lock size={15} />}>
+        <AppLockSettings
+          status={pinStatus}
+          onStatusChange={() => {
+            refetchPin();
+            // Clear the session unlock flag so lock re-engages immediately
+            const email = localStorage.getItem("userEmail") || "";
+            sessionStorage.removeItem(`ai_diary_unlocked_${email}`);
+          }}
+        />
+      </SectionCard>
+
       {/* Privacy */}
       <SectionCard title="Privacy" icon={<Shield size={15} />}>
         <p className="text-sm" style={{ color: "hsl(var(--muted-foreground))" }}>
-          Your diary entries are private and isolated to your email address. No data is shared with third parties. AI analysis is processed securely via OpenAI.
+          Your diary entries are private and isolated to your email address. No data is shared with third parties. AI analysis is processed securely via Groq.
         </p>
       </SectionCard>
 
