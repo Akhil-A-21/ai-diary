@@ -34,6 +34,31 @@ router.post("/", async (req: Request, res: Response) => {
     const userEmail = getUserEmail(req);
     const { title, description, targetDate } = req.body;
     const [goal] = await db.insert(goals).values({ title, description, targetDate, userEmail }).returning();
+
+    // Auto-generate milestones immediately after creation
+    try {
+      const response = await openai.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [{
+          role: "user",
+          content: `Generate 4-6 concrete, specific, actionable milestones for this goal: "${title}". Description: ${description || "none"}. Make each milestone a clear step that moves toward the goal. Return JSON: { milestones: [{ title: string }] }. Return ONLY valid JSON.`
+        }],
+      });
+      let result = { milestones: [] as { title: string }[] };
+      try {
+        result = JSON.parse((response.choices[0].message.content || "{}").replace(/```json\n?|\n?```/g, ""));
+      } catch {}
+      if (result.milestones?.length > 0) {
+        await Promise.all(
+          result.milestones.map((m, i) =>
+            db.insert(goalMilestones).values({ goalId: goal.id, title: m.title, order: i, userEmail }).returning()
+          )
+        );
+      }
+    } catch (milestoneErr) {
+      console.error("Milestone generation failed (non-fatal):", milestoneErr);
+    }
+
     res.status(201).json(goal);
   } catch (err) {
     res.status(500).json({ error: "Failed to create goal" });

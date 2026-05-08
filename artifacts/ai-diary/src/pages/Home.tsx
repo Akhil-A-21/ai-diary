@@ -218,55 +218,94 @@ export default function Home() {
       {/* ── Active Goal ── */}
       {latestGoal && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <GlassCard className="p-5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active Goal</span>
-              <Link href="/goals">
-                <span className="text-xs flex items-center gap-0.5 cursor-pointer" style={{ color: "hsl(var(--primary))" }}>
-                  View all <ArrowRight className="w-3 h-3" />
-                </span>
-              </Link>
-            </div>
-            <p className="font-semibold text-sm mt-1 mb-4 text-white">{latestGoal.title}</p>
-
-            {latestGoal.milestones && latestGoal.milestones.length > 0 ? (
-              <>
-                <div className="relative flex items-center mb-3">
-                  <div className="absolute left-0 right-0 h-px bg-white/10" style={{ top: "50%", transform: "translateY(-50%)" }} />
-                  <div className="relative flex items-center justify-between w-full">
-                    {latestGoal.milestones.slice(0, 5).map((m) => (
-                      <div
-                        key={m.id}
-                        className="w-7 h-7 rounded-full border-2 flex items-center justify-center relative z-10 transition-all"
-                        style={{
-                          background: m.completed ? "hsl(var(--primary))" : "hsl(var(--card))",
-                          borderColor: m.completed ? "hsl(var(--primary))" : "rgba(255,255,255,0.15)",
-                        }}
-                        title={m.title}
-                      >
-                        {m.completed && <CheckCircle2 className="w-3 h-3 text-white" />}
-                      </div>
-                    ))}
+          <Link href="/goals">
+            <GlassCard className="p-5 cursor-pointer border border-transparent hover:border-primary/20 transition-all">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: "hsl(var(--primary) / 0.15)" }}
+                  >
+                    <Target className="w-3.5 h-3.5" style={{ color: "hsl(var(--primary))" }} />
                   </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Active Goal</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    Next: <span className="font-medium text-white/80">
-                      {latestGoal.milestones.find((m) => !m.completed)?.title || "All done!"}
-                    </span>
-                  </p>
-                  <p className="text-xs font-medium text-orange-400">
-                    {latestGoal.milestones.filter((m) => m.completed).length}/{latestGoal.milestones.length} done{" "}
-                    <span className="text-muted-foreground">
-                      {Math.round((latestGoal.milestones.filter((m) => m.completed).length / latestGoal.milestones.length) * 100)}%
-                    </span>
-                  </p>
-                </div>
-              </>
-            ) : (
-              <p className="text-xs text-muted-foreground">No milestones yet — open Goals to generate some with AI.</p>
-            )}
-          </GlassCard>
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+
+              {/* Goal title */}
+              <p className="font-semibold text-white mb-3 leading-snug">{latestGoal.title}</p>
+
+              {latestGoal.milestones && latestGoal.milestones.length > 0 ? (() => {
+                const total = latestGoal.milestones.length;
+                const done = latestGoal.milestones.filter((m) => m.completed).length;
+                const pct = Math.round((done / total) * 100);
+                const nextM = latestGoal.milestones.find((m) => !m.completed);
+                return (
+                  <>
+                    {/* Progress bar */}
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-muted-foreground">{done}/{total} milestones</span>
+                        <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>{pct}%</span>
+                      </div>
+                      <div className="h-2 rounded-full" style={{ background: "hsl(240 12% 18%)" }}>
+                        <motion.div
+                          className="h-full rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.7, ease: "easeOut", delay: 0.35 }}
+                          style={{ background: "hsl(var(--primary))" }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Milestone list (up to 4) */}
+                    <div className="space-y-1.5 mt-3">
+                      {latestGoal.milestones.slice(0, 4).map((m) => (
+                        <div key={m.id} className="flex items-center gap-2">
+                          {m.completed ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
+                          ) : (
+                            <Circle className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+                          )}
+                          <span
+                            className={`text-xs leading-snug ${m.completed ? "line-through text-muted-foreground" : "text-white/80"}`}
+                          >
+                            {m.title}
+                          </span>
+                        </div>
+                      ))}
+                      {total > 4 && (
+                        <p className="text-xs text-muted-foreground pl-5.5">+{total - 4} more</p>
+                      )}
+                    </div>
+
+                    {/* Next up callout */}
+                    {nextM && (
+                      <div
+                        className="mt-3 px-3 py-2 rounded-lg text-xs"
+                        style={{ background: "hsl(var(--primary) / 0.08)", color: "hsl(var(--primary))" }}
+                      >
+                        ▶ Next up: {nextM.title}
+                      </div>
+                    )}
+                    {done === total && (
+                      <div
+                        className="mt-3 px-3 py-2 rounded-lg text-xs font-semibold"
+                        style={{ background: "#22c55e20", color: "#22c55e" }}
+                      >
+                        🎉 All milestones complete — mark goal as done!
+                      </div>
+                    )}
+                  </>
+                );
+              })() : (
+                <p className="text-xs text-muted-foreground">Milestones are being generated — tap to view.</p>
+              )}
+            </GlassCard>
+          </Link>
         </motion.div>
       )}
 

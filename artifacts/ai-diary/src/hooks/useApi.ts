@@ -101,7 +101,11 @@ export const useCreateGoal = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<Goal>) => apiFetch<Goal>("/goals", { method: "POST", body: JSON.stringify(data) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["goals"] }); qc.invalidateQueries({ queryKey: ["latest-goal"] }); },
+    onSuccess: (goal) => {
+      qc.invalidateQueries({ queryKey: ["goals"] });
+      qc.invalidateQueries({ queryKey: ["latest-goal"] });
+      qc.invalidateQueries({ queryKey: ["goal-milestones", goal.id] });
+    },
   });
 };
 
