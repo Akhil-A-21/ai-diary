@@ -92,24 +92,29 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
   try {
     const userEmail = getUserEmail(req);
     const entryId = parseInt(req.params.id);
-    let transcript = req.body.transcript || "";
+    let transcript = "";
     let transcriptionError = false;
 
-    // ── Step 1: Transcribe audio via Whisper (only if browser didn't provide transcript) ──
-    if (req.file && !transcript) {
+    // ── Step 1: Transcribe audio via Whisper ──
+    // Always use Whisper — never rely on the browser for transcription.
+    // The lang field is an ISO 639-1 code (e.g. "ml", "hi", "en") sent from the frontend.
+    const recordingLang: string = (req.body.lang as string) || "en";
+
+    if (req.file) {
       const tmpPath = path.join(os.tmpdir(), `video_${Date.now()}.webm`);
       try {
         fs.writeFileSync(tmpPath, req.file.buffer);
         const transcription = await openai.audio.transcriptions.create({
           file: fs.createReadStream(tmpPath) as any,
           model: "whisper-1",
+          language: recordingLang,   // tells Whisper which language to expect
+          response_format: "text",
         });
-        transcript = transcription.text || "";
+        transcript = (transcription as unknown as string).trim();
       } catch (whisperErr: any) {
         console.error("Whisper transcription failed:", whisperErr?.message || whisperErr);
         transcriptionError = true;
-        // Fallback: use a timestamped placeholder so the entry still saves
-        transcript = `Voice diary entry recorded on ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}. Transcription is temporarily unavailable — please check your OpenAI quota.`;
+        transcript = `Voice diary entry recorded on ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}. Transcription is temporarily unavailable.`;
       } finally {
         if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
       }
@@ -144,7 +149,6 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       return { mood: bestMood, moodScore: bestScore, energyLevel: energyMap[bestMood] ?? 5 };
     };
 
-    const recordingLang: string = (req.body.lang as string) || "en-US";
     const isEnglish = recordingLang.startsWith("en");
     const keywordAnalysis = (transcriptionError || !isEnglish) ? null : detectMoodFromText(transcript);
 

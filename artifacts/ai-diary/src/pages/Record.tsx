@@ -11,15 +11,15 @@ import { toast } from "../hooks/use-toast";
 type Stage = "loading" | "camera" | "recording" | "preview" | "uploading" | "analyzing" | "done" | "error" | "denied";
 
 const LANGUAGES = [
-  { code: "en-US", label: "English" },
-  { code: "ml-IN", label: "മലയാളം" },
-  { code: "hi-IN", label: "हिन्दी" },
-  { code: "ta-IN", label: "தமிழ்" },
-  { code: "te-IN", label: "తెలుగు" },
-  { code: "kn-IN", label: "ಕನ್ನಡ" },
-  { code: "bn-IN", label: "বাংলা" },
-  { code: "mr-IN", label: "मराठी" },
-  { code: "ur-PK", label: "اردو" },
+  { code: "en",    label: "English" },
+  { code: "ml",    label: "മലയാളം" },
+  { code: "hi",    label: "हिन्दी" },
+  { code: "ta",    label: "தமிழ்" },
+  { code: "te",    label: "తెలుగు" },
+  { code: "kn",    label: "ಕನ್ನಡ" },
+  { code: "bn",    label: "বাংলা" },
+  { code: "mr",    label: "मराठी" },
+  { code: "ur",    label: "اردو" },
 ];
 
 export default function Record() {
@@ -31,37 +31,21 @@ export default function Record() {
   const [title, setTitle] = useState("");
   const [entryId, setEntryId] = useState<number | null>(null);
   const [recordSeconds, setRecordSeconds] = useState(0);
-  const [liveTranscript, setLiveTranscript] = useState("");
-  const [finalTranscript, setFinalTranscript] = useState("");
-  const [speechSupported, setSpeechSupported] = useState(false);
-  const [selectedLang, setSelectedLang] = useState("en-US");
+  const [selectedLang, setSelectedLang] = useState("en");
   const [audioOnly, setAudioOnly] = useState(false);
-  const [speechError, setSpeechError] = useState<string | null>(null);
 
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const recognitionRef = useRef<any>(null);
-  const finalTranscriptRef = useRef("");
-  // Keep a ref so stale closures (useCallback) always read the latest language
-  const selectedLangRef = useRef(selectedLang);
-  // Sync ref whenever the language changes
-  useEffect(() => { selectedLangRef.current = selectedLang; }, [selectedLang]);
 
   const createEntry = useCreateEntry();
   const { data: journalPrompt, refetch: refetchPrompt } = useJournalPrompt();
 
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    setSpeechSupported(!!SpeechRecognition);
-  }, []);
-
   const openCamera = useCallback(async () => {
     setStage("loading");
     streamRef.current?.getTracks().forEach((t) => t.stop());
-    // Try video + audio first
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
@@ -70,7 +54,7 @@ export default function Record() {
       setStage("camera");
       return;
     } catch {}
-    // Fallback: audio only (camera blocked but mic allowed)
+    // Fallback: audio-only (camera blocked but mic allowed)
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       streamRef.current = stream;
@@ -86,76 +70,13 @@ export default function Record() {
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (timerRef.current) clearInterval(timerRef.current);
-      recognitionRef.current?.stop();
     };
   }, []);
-
-  const startSpeechRecognition = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) return;
-
-    // Always use the ref — never the stale closure value
-    const lang = selectedLangRef.current;
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.lang = lang;
-
-    finalTranscriptRef.current = "";
-    setLiveTranscript("");
-    setFinalTranscript("");
-    setSpeechError(null);
-
-    recognition.onresult = (e: any) => {
-      let interim = "";
-      let final = finalTranscriptRef.current;
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          final += e.results[i][0].transcript + " ";
-        } else {
-          interim += e.results[i][0].transcript;
-        }
-      }
-      finalTranscriptRef.current = final;
-      setFinalTranscript(final);
-      setLiveTranscript(interim);
-    };
-
-    recognition.onerror = (e: any) => {
-      const ignorable = ["no-speech", "aborted"];
-      if (ignorable.includes(e.error)) return;
-      // language-not-supported or network errors — show a helpful message
-      if (e.error === "language-not-supported") {
-        setSpeechError(`"${lang}" is not supported by your browser's speech recognition. Try switching to English or open the app in Google Chrome.`);
-      } else if (e.error === "network") {
-        setSpeechError("Speech recognition needs an internet connection.");
-      } else {
-        setSpeechError(`Speech recognition error: ${e.error}. The video will still be saved.`);
-      }
-    };
-
-    recognition.onend = () => {
-      // Auto-restart if still recording (handles the 60-second Chrome timeout)
-      if (mediaRecorderRef.current?.state === "recording") {
-        try { recognition.start(); } catch {}
-      }
-    };
-
-    try { recognition.start(); } catch (err) {
-      setSpeechError("Could not start speech recognition. Your audio will still be saved.");
-    }
-    recognitionRef.current = recognition;
-  };
 
   const startRecording = useCallback(() => {
     if (!streamRef.current) return;
     chunksRef.current = [];
     setRecordSeconds(0);
-    finalTranscriptRef.current = "";
-    setFinalTranscript("");
-    setLiveTranscript("");
 
     let mimeType = "video/webm;codecs=vp8,opus";
     if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = "video/webm";
@@ -164,14 +85,10 @@ export default function Record() {
     const mr = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.onstop = () => {
-      recognitionRef.current?.stop();
       const blob = new Blob(chunksRef.current, { type: "video/webm" });
       setRecordedBlob(blob);
       const url = URL.createObjectURL(blob);
       setPreviewUrl(url);
-      // Capture final transcript
-      const captured = finalTranscriptRef.current.trim();
-      setFinalTranscript(captured);
       if (liveVideoRef.current) liveVideoRef.current.srcObject = null;
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (timerRef.current) clearInterval(timerRef.current);
@@ -181,9 +98,6 @@ export default function Record() {
     mediaRecorderRef.current = mr;
     setStage("recording");
     timerRef.current = setInterval(() => setRecordSeconds((s) => s + 1), 1000);
-
-    // Start speech recognition in parallel
-    startSpeechRecognition();
   }, []);
 
   const stopRecording = useCallback(() => {
@@ -200,8 +114,6 @@ export default function Record() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setRecordedBlob(null);
     setPreviewUrl(null);
-    setFinalTranscript("");
-    setLiveTranscript("");
     setTitle("");
     setAnalysis(null);
     setAudioOnly(false);
@@ -224,11 +136,8 @@ export default function Record() {
 
       const formData = new FormData();
       formData.append("video", recordedBlob, "diary.webm");
+      // Send the ISO 639-1 language code so Whisper can transcribe accurately
       formData.append("lang", selectedLang);
-      // Send browser transcript — backend skips Whisper if this is present
-      if (finalTranscript) {
-        formData.append("transcript", finalTranscript);
-      }
 
       const analyzeRes = await fetch(`/api/diary/entries/${entry.id}/analyze`, {
         method: "POST",
@@ -306,7 +215,7 @@ export default function Record() {
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
           <CheckCircle2 size={64} className="mx-auto mb-4" style={{ color: "#22c55e" }} />
           <h1 className="font-display text-3xl font-bold mb-1 text-white">Entry Saved!</h1>
-          <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>Your diary has been analysed by Aura</p>
+          <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>Your diary has been transcribed and analysed by Aura</p>
         </motion.div>
 
         <div className="glass rounded-2xl p-5 space-y-3">
@@ -332,11 +241,11 @@ export default function Record() {
               </p>
             </div>
           )}
-          {(analysis.transcript || finalTranscript) && (
+          {analysis.transcript && (
             <div className="border-t pt-3" style={{ borderColor: "hsl(240 12% 20%)" }}>
               <p className="text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: "hsl(240 8% 50%)" }}>Transcript</p>
               <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
-                {analysis.transcript || finalTranscript}
+                {analysis.transcript}
               </p>
             </div>
           )}
@@ -366,10 +275,12 @@ export default function Record() {
           <Sparkles size={40} style={{ color: "hsl(var(--primary))" }} />
         </motion.div>
         <p className="text-lg font-semibold">
-          {stage === "uploading" ? "Saving your entry…" : "Aura is analysing…"}
+          {stage === "uploading" ? "Saving your entry…" : "Aura is transcribing & analysing…"}
         </p>
-        <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>
-          {stage === "analyzing" ? "Processing your mood and emotions with AI" : "Uploading your recording"}
+        <p className="text-sm text-center" style={{ color: "hsl(240 8% 55%)" }}>
+          {stage === "analyzing"
+            ? "Whisper is converting your speech to text, then GPT is reading your emotions"
+            : "Uploading your recording securely"}
         </p>
         <div className="w-48 h-1 rounded-full overflow-hidden" style={{ background: "hsl(240 12% 20%)" }}>
           <motion.div className="h-full rounded-full" style={{ background: "hsl(var(--primary))" }}
@@ -391,7 +302,7 @@ export default function Record() {
             Record Entry
           </h1>
           <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
-            Capture your thoughts, feelings, and experiences.
+            Speak freely — Aura will transcribe and analyse your entry with AI.
           </p>
         </div>
         {stage !== "recording" && (
@@ -421,7 +332,7 @@ export default function Record() {
       <div className="relative rounded-2xl overflow-hidden w-full"
         style={{ aspectRatio: "16/9", background: "hsl(240 15% 8%)" }}>
 
-        {/* Live camera feed (hidden in audio-only mode) */}
+        {/* Live camera feed */}
         <video
           ref={liveVideoRef}
           className="w-full h-full object-cover"
@@ -488,29 +399,6 @@ export default function Record() {
           </motion.div>
         )}
 
-        {/* Speech recognition error overlay */}
-        {stage === "recording" && speechError && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
-            className="absolute top-14 left-4 right-4 flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs leading-relaxed"
-            style={{ background: "rgba(245,158,11,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(245,158,11,0.3)", color: "rgba(255,220,100,0.95)" }}
-          >
-            <AlertCircle size={13} className="flex-shrink-0 mt-0.5 text-amber-400" />
-            {speechError}
-          </motion.div>
-        )}
-
-        {/* Live transcript overlay while recording */}
-        {stage === "recording" && (finalTranscript || liveTranscript) && (
-          <div
-            className="absolute bottom-20 left-4 right-4 px-3 py-2 rounded-xl text-xs leading-relaxed"
-            style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", color: "rgba(255,255,255,0.85)" }}
-          >
-            {finalTranscript}
-            <span style={{ color: "rgba(255,255,255,0.45)" }}>{liveTranscript}</span>
-          </div>
-        )}
-
         {/* REC badge */}
         {stage === "recording" && (
           <div
@@ -549,31 +437,18 @@ export default function Record() {
         )}
       </div>
 
-      {/* ── After recording: transcript preview + title + buttons ── */}
+      {/* ── After recording: title + action buttons ── */}
       <AnimatePresence>
         {stage === "preview" && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
 
-            {/* Show transcript if captured */}
-            {finalTranscript ? (
-              <div className="glass rounded-xl p-3">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <Mic size={12} style={{ color: "hsl(var(--primary))" }} />
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Transcript captured</p>
-                </div>
-                <p className="text-sm leading-relaxed text-white/80">{finalTranscript}</p>
-              </div>
-            ) : speechError ? (
-              <div className="glass rounded-xl p-3 flex items-start gap-2 border border-amber-500/20">
-                <AlertCircle size={13} className="flex-shrink-0 mt-0.5 text-amber-400" />
-                <p className="text-xs text-amber-300/90">{speechError}</p>
-              </div>
-            ) : speechSupported ? (
-              <div className="glass rounded-xl p-3 flex items-center gap-2">
-                <AlertCircle size={13} style={{ color: "#f59e0b" }} />
-                <p className="text-xs text-muted-foreground">No speech detected — Aura will still analyse your mood from the recording.</p>
-              </div>
-            ) : null}
+            {/* Info pill */}
+            <div className="glass rounded-xl px-4 py-3 flex items-center gap-2.5">
+              <Sparkles size={14} style={{ color: "hsl(var(--primary))" }} />
+              <p className="text-xs" style={{ color: "hsl(240 8% 65%)" }}>
+                Whisper will transcribe your speech, then GPT will analyse your mood and generate a summary.
+              </p>
+            </div>
 
             <input
               type="text"
