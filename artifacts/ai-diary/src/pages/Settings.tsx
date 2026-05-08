@@ -51,7 +51,7 @@ export default function Settings() {
     <div className="max-w-xl mx-auto space-y-6">
       <div>
         <h1 className="font-display text-4xl font-bold text-white">Settings</h1>
-        <p className="text-sm mt-1 text-muted-foreground">Personalise your Aura experience</p>
+        <p className="text-sm mt-1 text-muted-foreground">Personalise your AI Diary experience</p>
       </div>
 
       {/* User Identity */}
@@ -169,7 +169,7 @@ export default function Settings() {
 
       {/* About */}
       <div className="text-center py-4">
-        <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>AI Video Diary — Aura v1.0</p>
+        <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>AI Diary v1.0</p>
         <p className="text-xs mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Built with care for your emotional wellbeing</p>
       </div>
     </div>

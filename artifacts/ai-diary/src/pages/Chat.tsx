@@ -14,7 +14,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi, I'm Aura 💜 I'm here to listen, support, and help you process whatever's on your mind. How are you feeling today?",
+      content: "Hi, I'm AI Diary 💜 I'm here to listen, support, and help you process whatever's on your mind. How are you feeling today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -46,7 +46,7 @@ export default function Chat() {
     const newMessages: Message[] = [
       {
         role: "assistant",
-        content: "Hi, I'm Aura 💜 I'm here to listen, support, and help you process whatever's on your mind. How are you feeling today?",
+        content: "Hi, I'm AI Diary 💜 I'm here to listen, support, and help you process whatever's on your mind. How are you feeling today?",
       },
       userMsg,
     ];
@@ -67,7 +67,7 @@ export default function Chat() {
       const reply = await res.json();
       setMessages([...newMessages, { role: "assistant", content: reply.content }]);
     } catch {
-      toast({ title: "Failed to connect to Aura", variant: "destructive" });
+      toast({ title: "Failed to connect to AI Diary", variant: "destructive" });
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -131,7 +131,7 @@ export default function Chat() {
             <Sparkles size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-white">Aura</h1>
+            <h1 className="font-display text-2xl font-bold text-white">AI Diary</h1>
             <p className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Your emotional support companion</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5 text-xs" style={{ color: "#22c55e" }}>

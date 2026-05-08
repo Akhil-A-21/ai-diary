@@ -197,7 +197,7 @@ export function WellbeingAlert() {
                     style={{ background: `${cfg.accent}33`, borderColor: `${cfg.accent}55` }}
                   >
                     <MessageCircleHeart className="w-4 h-4" />
-                    Talk to Aura
+                    Talk to AI Diary
                   </Link>
                   <Link
                     href="/record"

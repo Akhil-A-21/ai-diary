@@ -223,7 +223,7 @@ export default function Record() {
           <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>
             {aiUnavailable
               ? "Your recording is saved — AI analysis is temporarily unavailable"
-              : "Your diary has been transcribed and analysed by Aura"}
+              : "Your diary has been transcribed and analysed by AI Diary"}
           </p>
         </motion.div>
 
@@ -295,7 +295,7 @@ export default function Record() {
           <Sparkles size={40} style={{ color: "hsl(var(--primary))" }} />
         </motion.div>
         <p className="text-lg font-semibold">
-          {stage === "uploading" ? "Saving your entry…" : "Aura is transcribing & analysing…"}
+          {stage === "uploading" ? "Saving your entry…" : "AI Diary is transcribing & analysing…"}
         </p>
         <p className="text-sm text-center" style={{ color: "hsl(240 8% 55%)" }}>
           {stage === "analyzing"
@@ -322,7 +322,7 @@ export default function Record() {
             Record Entry
           </h1>
           <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
-            Speak freely — Aura will transcribe and analyse your entry with AI.
+            Speak freely — AI Diary will transcribe and analyse your entry with AI.
           </p>
         </div>
         {stage !== "recording" && (
@@ -505,7 +505,7 @@ export default function Record() {
                 style={{ background: "hsl(var(--primary))" }}
               >
                 <Sparkles size={16} />
-                Analyse with Aura
+                Analyse with AI Diary
               </motion.button>
             </div>
           </motion.div>

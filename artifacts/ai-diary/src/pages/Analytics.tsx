@@ -81,7 +81,7 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
         ) : (
           <div className="space-y-2">
             <p className="text-xs mb-3" style={{ color: "hsl(240 8% 55%)" }}>
-              Tap a reason to talk to Aura about it
+              Tap a reason to talk to AI Diary about it
             </p>
             {data.reasons.map((reason, i) => (
               <motion.button
@@ -332,7 +332,7 @@ export default function Analytics() {
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-sm" style={{ background: "hsl(var(--accent))" }} />
-                <span className="text-muted-foreground">Aura Chat</span>
+                <span className="text-muted-foreground">AI Diary Chat</span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={160}>

@@ -50,7 +50,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Video className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="font-display font-bold text-white text-base leading-none">Aura</p>
+              <p className="font-display font-bold text-white text-base leading-none">AI Diary</p>
               <p className="text-xs text-muted-foreground leading-none mt-0.5">AI Video Diary</p>
             </div>
           </div>
