@@ -92,7 +92,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div>
               <h1 className="text-white font-semibold text-sm tracking-wide">AI Video Diary</h1>
-              <p className="text-xs sidebar-muted-text">Your Aura companion</p>
+              <p className="text-xs sidebar-muted-text">Your daily companion</p>
             </div>
           </div>
         </div>

@@ -82,7 +82,7 @@ export default function Login() {
                 Aura
               </h1>
               <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
-                Your AI Video Diary companion
+                Your daily companion
               </p>
             </div>
           </div>
