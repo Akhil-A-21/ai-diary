@@ -114,10 +114,18 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email").notNull(),
+  role: text("role").notNull(), // "user" | "assistant"
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const db = drizzle(pool, {
   schema: {
     diaryEntries, pinSettings, goals, goalMilestones,
     gratitudeEntries, userPreferences, habits, habitCompletions,
-    moodTrends, pushSubscriptions,
+    moodTrends, pushSubscriptions, chatMessages,
   },
 });
