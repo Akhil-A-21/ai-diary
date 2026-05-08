@@ -187,7 +187,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       const analysisResponse = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are an empathetic emotional intelligence AI. Analyze this diary entry and return JSON with: mood (string: happy/sad/anxious/calm/energized/reflective/grateful), moodScore (1-10), energyLevel (1-10), summary (2-3 warm empathetic sentences), triggers (array of strings). Return ONLY valid JSON, no markdown." },
+          { role: "system", content: "You are an empathetic emotional intelligence AI that understands any language including Malayalam, Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Urdu, and English. Analyze this diary entry (which may be in any language) and return JSON with: mood (string: happy/sad/anxious/calm/energized/reflective/grateful), moodScore (1-10), energyLevel (1-10), summary (2-3 warm empathetic sentences ALWAYS written in English regardless of the input language), triggers (array of strings in English). Return ONLY valid JSON, no markdown." },
           { role: "user", content: transcript },
         ],
       });

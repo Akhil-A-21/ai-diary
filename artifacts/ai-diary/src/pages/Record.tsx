@@ -10,6 +10,18 @@ import { toast } from "../hooks/use-toast";
 
 type Stage = "loading" | "camera" | "recording" | "preview" | "uploading" | "analyzing" | "done" | "error" | "denied";
 
+const LANGUAGES = [
+  { code: "en-US", label: "English" },
+  { code: "ml-IN", label: "മലയാളം" },
+  { code: "hi-IN", label: "हिन्दी" },
+  { code: "ta-IN", label: "தமிழ்" },
+  { code: "te-IN", label: "తెలుగు" },
+  { code: "kn-IN", label: "ಕನ್ನಡ" },
+  { code: "bn-IN", label: "বাংলা" },
+  { code: "mr-IN", label: "मराठी" },
+  { code: "ur-PK", label: "اردو" },
+];
+
 export default function Record() {
   const [, setLocation] = useLocation();
   const [stage, setStage] = useState<Stage>("loading");
@@ -22,6 +34,7 @@ export default function Record() {
   const [liveTranscript, setLiveTranscript] = useState("");
   const [finalTranscript, setFinalTranscript] = useState("");
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [selectedLang, setSelectedLang] = useState("en-US");
 
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -68,7 +81,7 @@ export default function Record() {
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    recognition.lang = selectedLang;
 
     finalTranscriptRef.current = "";
     setLiveTranscript("");
@@ -301,13 +314,36 @@ export default function Record() {
   return (
     <div className="space-y-4">
       {/* ── Page Header ── */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>
-          Record Entry
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
-          Capture your thoughts, feelings, and experiences.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>
+            Record Entry
+          </h1>
+          <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
+            Capture your thoughts, feelings, and experiences.
+          </p>
+        </div>
+        {stage !== "recording" && (
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>
+              Language
+            </label>
+            <select
+              value={selectedLang}
+              onChange={(e) => setSelectedLang(e.target.value)}
+              className="text-sm px-3 py-1.5 rounded-lg border outline-none cursor-pointer"
+              style={{
+                background: "hsl(240 15% 13%)",
+                borderColor: "hsl(240 12% 22%)",
+                color: "hsl(240 10% 85%)",
+              }}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>{l.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* ── Main Video Block ── */}
