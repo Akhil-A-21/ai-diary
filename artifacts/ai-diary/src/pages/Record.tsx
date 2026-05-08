@@ -213,17 +213,52 @@ export default function Record() {
 
   // ── Camera denied ──
   if (stage === "denied") {
+    const isInIframe = window.self !== window.top;
     return (
-      <div className="max-w-2xl mx-auto flex flex-col items-center justify-center py-20 text-center space-y-4">
-        <AlertCircle size={48} style={{ color: "hsl(var(--destructive))" }} />
-        <h1 className="text-2xl font-bold" style={{ fontFamily: "Playfair Display, serif" }}>Camera Access Required</h1>
-        <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>
-          Please allow camera and microphone access in your browser, then try again.
-        </p>
-        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={openCamera}
-          className="px-6 py-3 rounded-xl text-white font-medium" style={{ background: "hsl(var(--primary))" }}>
-          Try Again
-        </motion.button>
+      <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-16 text-center space-y-5">
+        <AlertCircle size={52} style={{ color: "hsl(var(--destructive))" }} />
+        <div>
+          <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "Playfair Display, serif" }}>Camera Access Required</h1>
+          {isInIframe ? (
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
+              The preview panel can't access your camera.<br />
+              Open the app in a <strong style={{ color: "hsl(240 10% 85%)" }}>new tab</strong> and allow camera access there.
+            </p>
+          ) : (
+            <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
+              Click the camera icon in your browser's address bar and allow access, then try again.
+            </p>
+          )}
+        </div>
+
+        {isInIframe ? (
+          <motion.a
+            href={window.location.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium no-underline"
+            style={{ background: "hsl(var(--primary))" }}
+          >
+            Open in New Tab
+          </motion.a>
+        ) : (
+          <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={openCamera}
+            className="px-6 py-3 rounded-xl text-white font-medium" style={{ background: "hsl(var(--primary))" }}>
+            Try Again
+          </motion.button>
+        )}
+
+        <div className="rounded-xl border p-4 text-left w-full space-y-2"
+          style={{ borderColor: "hsl(240 12% 20%)", background: "hsl(240 15% 11%)" }}>
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>How to allow camera access</p>
+          <ol className="text-xs space-y-1.5 list-decimal list-inside" style={{ color: "hsl(240 8% 65%)" }}>
+            <li>Open the app link in a new browser tab</li>
+            <li>Click the 🔒 lock icon in the address bar</li>
+            <li>Set <strong style={{ color: "hsl(240 10% 80%)" }}>Camera</strong> and <strong style={{ color: "hsl(240 10% 80%)" }}>Microphone</strong> to Allow</li>
+            <li>Refresh the page and go to Record</li>
+          </ol>
+        </div>
       </div>
     );
   }
