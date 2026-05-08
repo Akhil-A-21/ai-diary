@@ -35,6 +35,7 @@ export default function Record() {
   const [finalTranscript, setFinalTranscript] = useState("");
   const [speechSupported, setSpeechSupported] = useState(false);
   const [selectedLang, setSelectedLang] = useState("en-US");
+  const [audioOnly, setAudioOnly] = useState(false);
 
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -54,11 +55,21 @@ export default function Record() {
 
   const openCamera = useCallback(async () => {
     setStage("loading");
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    // Try video + audio first
     try {
-      streamRef.current?.getTracks().forEach((t) => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       streamRef.current = stream;
       if (liveVideoRef.current) liveVideoRef.current.srcObject = stream;
+      setAudioOnly(false);
+      setStage("camera");
+      return;
+    } catch {}
+    // Fallback: audio only (camera blocked but mic allowed)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+      streamRef.current = stream;
+      setAudioOnly(true);
       setStage("camera");
     } catch {
       setStage("denied");
@@ -169,6 +180,7 @@ export default function Record() {
     setLiveTranscript("");
     setTitle("");
     setAnalysis(null);
+    setAudioOnly(false);
     openCamera();
   };
 
@@ -382,20 +394,48 @@ export default function Record() {
         )}
       </div>
 
-      {/* ── Main Video Block ── */}
+      {/* ── Main Video / Audio Block ── */}
       <div className="relative rounded-2xl overflow-hidden w-full"
         style={{ aspectRatio: "16/9", background: "hsl(240 15% 8%)" }}>
 
-        {/* Live camera feed */}
+        {/* Live camera feed (hidden in audio-only mode) */}
         <video
           ref={liveVideoRef}
           className="w-full h-full object-cover"
-          style={{ display: isLive ? "block" : "none" }}
+          style={{ display: (isLive && !audioOnly) ? "block" : "none" }}
           autoPlay muted playsInline
         />
 
-        {/* Recorded preview */}
-        {stage === "preview" && previewUrl && (
+        {/* Audio-only visualiser */}
+        {isLive && audioOnly && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div className="flex items-end gap-1 h-16">
+              {[...Array(9)].map((_, i) => (
+                <motion.div key={i}
+                  className="w-2 rounded-full"
+                  style={{ background: "hsl(var(--primary))" }}
+                  animate={{ height: stage === "recording" ? ["12px","40px","8px","36px","16px"][i % 5] : "8px" }}
+                  transition={{ duration: 0.5 + i * 0.07, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+                />
+              ))}
+            </div>
+            <p className="text-sm font-medium" style={{ color: "hsl(240 8% 65%)" }}>
+              {stage === "recording" ? "Recording audio…" : "Audio mode — camera unavailable"}
+            </p>
+          </div>
+        )}
+
+        {/* Recorded audio-only preview */}
+        {stage === "preview" && audioOnly && recordedBlob && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-8">
+            <Mic size={40} style={{ color: "hsl(var(--primary))" }} />
+            <p className="text-sm" style={{ color: "hsl(240 8% 65%)" }}>Audio recording ready</p>
+            <audio src={previewUrl ?? undefined} controls className="w-full" style={{ filter: "invert(0.85) hue-rotate(220deg)" }} />
+          </div>
+        )}
+
+        {/* Recorded video preview */}
+        {stage === "preview" && previewUrl && !audioOnly && (
           <video className="w-full h-full object-cover" src={previewUrl} controls autoPlay playsInline />
         )}
 
@@ -403,7 +443,7 @@ export default function Record() {
         {stage === "loading" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <Loader2 size={32} className="animate-spin" style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-xs" style={{ color: "hsl(240 8% 50%)" }}>Starting camera…</p>
+            <p className="text-xs" style={{ color: "hsl(240 8% 50%)" }}>Starting…</p>
           </div>
         )}
 
