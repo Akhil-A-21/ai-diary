@@ -14,6 +14,7 @@ import Habits from "./pages/Habits";
 import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import SearchPage from "./pages/Search";
 import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./context/AuthContext";
 
@@ -29,8 +30,11 @@ function ProtectedApp() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "hsl(var(--background))" }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "hsl(var(--primary))", borderTopColor: "transparent" }} />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div
+          className="w-8 h-8 rounded-full border-2 animate-spin"
+          style={{ borderColor: "hsl(var(--primary))", borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
@@ -52,6 +56,7 @@ function ProtectedApp() {
         <Route path="/habits" component={Habits} />
         <Route path="/chat" component={Chat} />
         <Route path="/settings" component={Settings} />
+        <Route path="/search" component={SearchPage} />
       </Switch>
     </Layout>
   );

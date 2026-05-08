@@ -50,8 +50,8 @@ export default function Gratitude() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Gratitude Journal</h1>
-          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Three things you're grateful for today</p>
+          <h1 className="font-display text-4xl font-bold text-white">Gratitude Journal</h1>
+          <p className="text-sm mt-1 text-muted-foreground">Three things you're grateful for today</p>
         </div>
         {streak > 0 && (
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: "hsl(var(--secondary))" }}>
@@ -62,7 +62,7 @@ export default function Gratitude() {
       </div>
 
       {/* Date Navigation */}
-      <div className="flex items-center justify-between rounded-xl p-3 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+      <div className="flex items-center justify-between glass rounded-xl p-3">
         <button onClick={() => setDateOffset(d => d + 1)} className="p-1.5 rounded-lg hover:bg-muted transition-colors" data-testid="button-prev-day">
           <ChevronLeft size={17} />
         </button>
@@ -85,8 +85,7 @@ export default function Gratitude() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: num * 0.05 }}
-              className="rounded-2xl p-5 border"
-              style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+              className="glass rounded-2xl p-5"
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
@@ -150,8 +149,7 @@ export default function Gratitude() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="rounded-xl p-4 border"
-              style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+              className="glass rounded-xl p-4"
             >
               <p className="text-xs font-medium mb-2" style={{ color: "hsl(var(--muted-foreground))" }}>{formatDate(entry.date)}</p>
               <ul className="space-y-1">

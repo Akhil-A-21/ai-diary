@@ -75,10 +75,7 @@ export default function Login() {
               <Sparkles size={32} className="text-white" />
             </div>
             <div>
-              <h1
-                className="text-3xl font-bold"
-                style={{ fontFamily: "Playfair Display, serif", color: "hsl(240 10% 95%)" }}
-              >
+              <h1 className="font-display text-3xl font-bold text-white">
                 Aura
               </h1>
               <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>

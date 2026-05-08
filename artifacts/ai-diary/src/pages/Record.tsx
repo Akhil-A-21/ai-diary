@@ -230,7 +230,7 @@ export default function Record() {
       <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-16 text-center space-y-5">
         <AlertCircle size={52} style={{ color: "hsl(var(--destructive))" }} />
         <div>
-          <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: "Playfair Display, serif" }}>Camera Access Required</h1>
+          <h1 className="font-display text-2xl font-bold mb-2 text-white">Camera Access Required</h1>
           {isInIframe ? (
             <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
               The preview panel can't access your camera.<br />
@@ -281,12 +281,11 @@ export default function Record() {
       <div className="max-w-lg mx-auto py-10 space-y-6">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
           <CheckCircle2 size={64} className="mx-auto mb-4" style={{ color: "#22c55e" }} />
-          <h1 className="text-3xl font-bold mb-1" style={{ fontFamily: "Playfair Display, serif" }}>Entry Saved!</h1>
+          <h1 className="font-display text-3xl font-bold mb-1 text-white">Entry Saved!</h1>
           <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>Your diary has been analysed by Aura</p>
         </motion.div>
 
-        <div className="rounded-2xl border p-5 space-y-3"
-          style={{ background: "hsl(240 15% 13%)", borderColor: "hsl(240 12% 20%)" }}>
+        <div className="glass rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Mood</p>
             <span className="text-sm font-semibold capitalize">{analysis.mood}</span>
@@ -364,7 +363,7 @@ export default function Record() {
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>
+          <h1 className="font-display text-4xl font-bold text-white">
             Record Entry
           </h1>
           <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>

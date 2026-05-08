@@ -37,7 +37,7 @@ export default function Settings() {
 
   function SectionCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
     return (
-      <div className="rounded-2xl p-5 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+      <div className="glass rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <span style={{ color: "hsl(var(--primary))" }}>{icon}</span>
           <h2 className="font-semibold text-sm">{title}</h2>
@@ -50,8 +50,8 @@ export default function Settings() {
   return (
     <div className="max-w-xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Settings</h1>
-        <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Personalise your Aura experience</p>
+        <h1 className="font-display text-4xl font-bold text-white">Settings</h1>
+        <p className="text-sm mt-1 text-muted-foreground">Personalise your Aura experience</p>
       </div>
 
       {/* User Identity */}

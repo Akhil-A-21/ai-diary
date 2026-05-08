@@ -526,15 +526,126 @@ router.get("/emotion-patterns", async (req: Request, res: Response) => {
     const patterns = Object.entries(moodCounts).map(([mood, count]) => ({ mood, count }));
     let insight = "Keep journaling to discover your emotional patterns.";
     if (entries.length > 5) {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: `Analyse these emotion patterns: ${JSON.stringify(patterns)} and give a 1-sentence insight.` }],
-      });
-      insight = response.choices[0].message.content || insight;
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: `Analyse these emotion patterns: ${JSON.stringify(patterns)} and give a 1-sentence insight.` }],
+        });
+        insight = response.choices[0].message.content || insight;
+      } catch {}
     }
     res.json({ patterns, insight });
   } catch (err) {
     res.status(500).json({ error: "Failed to analyse emotion patterns" });
+  }
+});
+
+// ── GET /diary/wellbeing-check ──────────────────────────────────────────────
+router.get("/wellbeing-check", async (req: Request, res: Response) => {
+  try {
+    const userEmail = getUserEmail(req);
+    if (!userEmail) return res.json({ needsSupport: false, severity: "none", reason: null, daysSilent: null });
+
+    const [latestEntry] = await db
+      .select({ entryDate: diaryEntries.entryDate })
+      .from(diaryEntries)
+      .where(eq(diaryEntries.userEmail, userEmail))
+      .orderBy(desc(diaryEntries.entryDate))
+      .limit(1);
+
+    const daysSilent = latestEntry
+      ? Math.floor((Date.now() - new Date(latestEntry.entryDate as string).getTime()) / 86_400_000)
+      : 999;
+
+    const last5 = await db
+      .select({ mood: diaryEntries.mood, moodScore: diaryEntries.moodScore })
+      .from(diaryEntries)
+      .where(eq(diaryEntries.userEmail, userEmail))
+      .orderBy(desc(diaryEntries.entryDate))
+      .limit(5);
+
+    const DISTRESS_MOODS = new Set(["sad", "anxious", "angry"]);
+    const distressCount = last5.filter(
+      (e) => (e.mood && DISTRESS_MOODS.has(e.mood)) || (e.moodScore !== null && (e.moodScore as number) < 0.35)
+    ).length;
+    const moodDistressed = last5.length >= 3 && distressCount >= 3;
+
+    let severity: "none" | "mild" | "serious" | "urgent" = "none";
+    let reason: "absent" | "distressed" | "both" | null = null;
+
+    if (daysSilent >= 7) {
+      severity = "urgent";
+      reason = moodDistressed ? "both" : "absent";
+    } else if (daysSilent >= 5) {
+      severity = "serious";
+      reason = moodDistressed ? "both" : "absent";
+    } else if (daysSilent >= 3) {
+      severity = "mild";
+      reason = moodDistressed ? "both" : "absent";
+    } else if (moodDistressed) {
+      severity = "mild";
+      reason = "distressed";
+    }
+
+    res.json({ needsSupport: severity !== "none", severity, reason, daysSilent: latestEntry ? daysSilent : null });
+  } catch (err) {
+    console.error("Wellbeing check error:", err);
+    res.status(500).json({ error: "Failed to check wellbeing" });
+  }
+});
+
+// ── GET /diary/welcome-back ─────────────────────────────────────────────────
+router.get("/welcome-back", async (req: Request, res: Response) => {
+  try {
+    const userEmail = getUserEmail(req);
+    if (!userEmail) return res.json({ isReturn: false });
+
+    const [latestEntry] = await db
+      .select({ entryDate: diaryEntries.entryDate })
+      .from(diaryEntries)
+      .where(eq(diaryEntries.userEmail, userEmail))
+      .orderBy(desc(diaryEntries.entryDate))
+      .limit(1);
+
+    if (!latestEntry) return res.json({ isReturn: false });
+
+    const daysSilent = Math.floor(
+      (Date.now() - new Date(latestEntry.entryDate as string).getTime()) / 86_400_000
+    );
+
+    res.json({ isReturn: daysSilent >= 4, daysSilent });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to check return status" });
+  }
+});
+
+// ── GET /diary/search ───────────────────────────────────────────────────────
+router.get("/search", async (req: Request, res: Response) => {
+  try {
+    const userEmail = getUserEmail(req);
+    const q = (req.query.q as string || "").trim();
+    if (!q) return res.json([]);
+
+    const entries = await db
+      .select()
+      .from(diaryEntries)
+      .where(
+        and(
+          eq(diaryEntries.userEmail, userEmail),
+          sql`(
+            ${diaryEntries.title} ILIKE ${"%" + q + "%"} OR
+            ${diaryEntries.transcript} ILIKE ${"%" + q + "%"} OR
+            ${diaryEntries.summary} ILIKE ${"%" + q + "%"}
+          )`
+        )
+      )
+      .orderBy(desc(diaryEntries.entryDate))
+      .limit(50);
+
+    res.json(entries);
+  } catch (err) {
+    console.error("Search error:", err);
+    res.status(500).json({ error: "Search failed" });
   }
 });
 

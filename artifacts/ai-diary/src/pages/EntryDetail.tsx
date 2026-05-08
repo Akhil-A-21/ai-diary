@@ -67,8 +67,8 @@ export default function EntryDetail() {
 
       {/* Title */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight leading-snug" style={{ fontFamily: "Playfair Display, serif" }}>{entry.title}</h1>
-        <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>{formatDate(entry.entryDate)}</p>
+        <h1 className="font-display text-3xl font-bold leading-snug text-white">{entry.title}</h1>
+        <p className="text-sm mt-1 text-muted-foreground">{formatDate(entry.entryDate as string)}</p>
       </div>
 
       {/* Mood + Stats */}
@@ -104,7 +104,7 @@ export default function EntryDetail() {
 
       {/* Summary */}
       {entry.summary && (
-        <div className="rounded-2xl p-4 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <Zap size={14} style={{ color: "hsl(var(--primary))" }} />
             <span className="text-xs font-medium uppercase tracking-wide" style={{ color: "hsl(var(--muted-foreground))" }}>AI Summary</span>
@@ -115,7 +115,7 @@ export default function EntryDetail() {
 
       {/* Transcript */}
       {entry.transcript && (
-        <div className="rounded-2xl p-4 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <FileText size={14} style={{ color: "hsl(var(--muted-foreground))" }} />
             <span className="text-xs font-medium uppercase tracking-wide" style={{ color: "hsl(var(--muted-foreground))" }}>Transcript</span>
@@ -126,7 +126,7 @@ export default function EntryDetail() {
 
       {/* Triggers */}
       {entry.triggers && entry.triggers.length > 0 && (
-        <div className="rounded-2xl p-4 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle size={14} style={{ color: "#f59e0b" }} />
             <span className="text-xs font-medium uppercase tracking-wide" style={{ color: "hsl(var(--muted-foreground))" }}>Emotional Triggers</span>

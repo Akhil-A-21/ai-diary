@@ -51,8 +51,8 @@ export default function Habits() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Habits</h1>
-          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Build consistency, one day at a time</p>
+          <h1 className="font-display text-4xl font-bold text-white">Habits</h1>
+          <p className="text-sm mt-1 text-muted-foreground">Build consistency, one day at a time</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}
@@ -76,7 +76,7 @@ export default function Habits() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-2xl p-5 border space-y-3" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+            <div className="glass rounded-2xl p-5 space-y-3">
               <div className="flex gap-3">
                 <select
                   value={form.emoji}
@@ -113,7 +113,7 @@ export default function Habits() {
 
       {/* Today's Check-ins */}
       {habits.length > 0 && (
-        <div className="rounded-2xl p-5 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+        <div className="glass rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Activity size={15} style={{ color: "hsl(var(--primary))" }} />
             <h2 className="font-semibold text-sm">Today's Check-in</h2>
@@ -164,8 +164,7 @@ export default function Habits() {
               key={stat.id}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl p-4 border"
-              style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+              className="glass rounded-2xl p-4"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

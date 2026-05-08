@@ -71,7 +71,7 @@ export default function Chat() {
             <Sparkles size={18} className="text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Aura</h1>
+            <h1 className="font-display text-2xl font-bold text-white">Aura</h1>
             <p className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Your emotional support companion</p>
           </div>
           <div className="ml-auto flex items-center gap-1.5 text-xs" style={{ color: "#22c55e" }}>
@@ -101,16 +101,11 @@ export default function Chat() {
                 </div>
               )}
               <div
-                className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed"
+                className={`max-w-[80%] px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "" : "glass"}`}
                 style={{
-                  background: msg.role === "user"
-                    ? "hsl(var(--primary))"
-                    : "hsl(var(--card))",
+                  background: msg.role === "user" ? "hsl(var(--primary))" : undefined,
                   color: msg.role === "user" ? "white" : "hsl(var(--foreground))",
-                  borderRadius: msg.role === "user"
-                    ? "18px 18px 4px 18px"
-                    : "18px 18px 18px 4px",
-                  border: msg.role === "assistant" ? "1px solid hsl(var(--border))" : "none",
+                  borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                 }}
                 data-testid={`message-${msg.role}-${i}`}
               >
@@ -132,7 +127,7 @@ export default function Chat() {
             >
               <Sparkles size={13} className="text-white" />
             </div>
-            <div className="rounded-2xl px-4 py-3 border" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+            <div className="glass rounded-2xl px-4 py-3">
               <div className="flex gap-1 items-center h-4">
                 {[0, 1, 2].map((i) => (
                   <motion.div
@@ -160,10 +155,8 @@ export default function Chat() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Share what's on your mind..."
-          className="flex-1 px-4 py-3 rounded-2xl border text-sm outline-none"
+          className="flex-1 px-4 py-3 rounded-2xl text-sm outline-none text-white placeholder:text-muted-foreground glass"
           style={{
-            background: "hsl(var(--card))",
-            borderColor: "hsl(var(--border))",
             color: "hsl(var(--foreground))",
           }}
           data-testid="input-chat"

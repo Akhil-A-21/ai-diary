@@ -61,8 +61,7 @@ function GoalCard({ goal }: { goal: Goal }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl p-5 border"
-      style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}
+      className="glass rounded-2xl p-5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
@@ -176,8 +175,8 @@ export default function Goals() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ fontFamily: "Playfair Display, serif" }}>Goals</h1>
-          <p className="text-sm mt-1" style={{ color: "hsl(var(--muted-foreground))" }}>Set and track your aspirations</p>
+          <h1 className="font-display text-4xl font-bold text-white">Goals</h1>
+          <p className="text-sm mt-1 text-muted-foreground">Set and track your aspirations</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}
@@ -201,7 +200,7 @@ export default function Goals() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="rounded-2xl p-5 border space-y-3" style={{ background: "hsl(var(--card))", borderColor: "hsl(var(--border))" }}>
+            <div className="glass rounded-2xl p-5 space-y-3">
               <input
                 type="text"
                 placeholder="Goal title"
