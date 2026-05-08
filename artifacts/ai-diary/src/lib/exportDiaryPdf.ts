@@ -369,7 +369,6 @@ function buildLineChart(doc: jsPDF, pageW: number, pageH: number, trends: MoodTr
   const M = 16;
   pageHeader(doc, pageW, "Mood Timeline");
 
-  // Title
   textColor(doc, WHITE);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
@@ -379,119 +378,125 @@ function buildLineChart(doc: jsPDF, pageW: number, pageH: number, trends: MoodTr
   doc.setFont("helvetica", "normal");
   doc.text("Your emotional journey over time (scored 0–10)", M, 29);
 
-  const chartX = M + 14;
+  const yAxisW = 14;
+  const chartX = M + yAxisW;
   const chartY = 38;
-  const chartW = pageW - M * 2 - 14;
-  const chartH = 90;
+  const chartW = pageW - M * 2 - yAxisW;
+  const chartH = 88;
+  const bottom  = chartY + chartH;
 
-  // Chart background
-  fillRect(doc, chartX - 2, chartY - 2, chartW + 4, chartH + 4, CARD, 3);
+  // Background card
+  fillRect(doc, chartX, chartY, chartW, chartH, CARD, 2);
 
-  // Grid lines
-  doc.setDrawColor(BORDER[0], BORDER[1], BORDER[2]);
-  doc.setLineWidth(0.3);
+  // Horizontal grid lines + Y labels (0, 2, 4, 6, 8, 10)
   for (let i = 0; i <= 5; i++) {
     const gy = chartY + chartH - (i / 5) * chartH;
+    doc.setDrawColor(BORDER[0], BORDER[1], BORDER[2]);
+    doc.setLineWidth(0.2);
     doc.line(chartX, gy, chartX + chartW, gy);
     textColor(doc, MUTED);
     doc.setFontSize(6);
-    doc.text(String(i * 2), chartX - 12, gy + 2, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    doc.text(String(i * 2), chartX - 2, gy + 2, { align: "right" });
   }
 
-  if (trends.length < 2) {
-    textColor(doc, MUTED);
-    doc.setFontSize(9);
-    doc.text("Not enough data to display chart.", chartX + chartW / 2, chartY + chartH / 2, { align: "center" });
-    return;
-  }
-
-  // Plot data — diary source only, or all if no diary
+  // Filter valid data points, newest-first from API → reverse to chronological
   const data = trends
     .filter(t => t.moodScore != null)
     .slice(0, 30)
     .reverse();
 
-  // Draw filled area first
-  const pts = data.map((t, i) => ({
-    x: chartX + (i / (data.length - 1)) * chartW,
-    y: chartY + chartH - (t.moodScore! * chartH),
-  }));
+  if (data.length === 0) {
+    textColor(doc, MUTED);
+    doc.setFontSize(9);
+    doc.text("No mood data available yet.", chartX + chartW / 2, chartY + chartH / 2, { align: "center" });
+    // Still draw the stats block with zeros
+  } else {
+    // Map data → pixel coordinates
+    // moodScore is 0-1; high score → line near TOP (small y in PDF)
+    // y = chartY + chartH - (score * chartH)
+    const pts = data.map((t, i) => ({
+      x: chartX + (data.length === 1 ? chartW / 2 : (i / (data.length - 1)) * chartW),
+      y: chartY + chartH - (t.moodScore! * chartH),
+      mood: t.mood,
+      score: t.moodScore!,
+      date: t.date,
+    }));
 
-  // Gradient fill under line (approximated with horizontal strips)
-  for (let strip = 0; strip < chartH; strip++) {
-    const stripY = chartY + strip;
-    const alpha = 1 - (strip / chartH);
-    const r = Math.round(PRIMARY[0] * 0.3 * alpha);
-    const g = Math.round(PRIMARY[1] * 0.3 * alpha);
-    const b = Math.round(PRIMARY[2] * 0.5 * alpha);
-    doc.setFillColor(r, g, b);
-    // Find the line Y at this horizontal position
-    for (let p = 0; p < pts.length - 1; p++) {
-      const p1 = pts[p], p2 = pts[p + 1];
-      if (p1.y <= stripY && p2.y <= stripY) {
-        doc.rect(p1.x, stripY, p2.x - p1.x, 0.8, "F");
+    // ── Area fill: for each segment draw two triangles from line → chart bottom ──
+    // This is correct regardless of score values (no strip/alpha confusion)
+    const FILL: [number, number, number] = [55, 25, 110];
+    doc.setFillColor(FILL[0], FILL[1], FILL[2]);
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p1 = pts[i], p2 = pts[i + 1];
+      // Quad: p1 (line) → p2 (line) → p2 (bottom) → p1 (bottom)
+      doc.triangle(p1.x, p1.y, p2.x, p2.y, p2.x, bottom, "F");
+      doc.triangle(p1.x, p1.y, p2.x, bottom, p1.x, bottom, "F");
+    }
+    // Single-point fallback: draw a thin vertical bar
+    if (pts.length === 1) {
+      doc.setFillColor(FILL[0], FILL[1], FILL[2]);
+      doc.rect(pts[0].x - 1, pts[0].y, 2, bottom - pts[0].y, "F");
+    }
+
+    // ── Line on top of fill ──
+    doc.setDrawColor(PRIMARY[0], PRIMARY[1], PRIMARY[2]);
+    doc.setLineWidth(1.8);
+    for (let i = 0; i < pts.length - 1; i++) {
+      doc.line(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
+    }
+
+    // ── Dots — outer mood-coloured ring, white centre ──
+    const step = Math.max(1, Math.floor(data.length / 8));
+    pts.forEach((pt, i) => {
+      const mc = moodColor(pt.mood);
+      // Outer dot (mood colour)
+      doc.setFillColor(mc[0], mc[1], mc[2]);
+      doc.circle(pt.x, pt.y, 2.8, "F");
+      // Inner white fill
+      doc.setFillColor(255, 255, 255);
+      doc.circle(pt.x, pt.y, 1.2, "F");
+
+      // Date label at regular intervals + last point
+      if (i % step === 0 || i === pts.length - 1) {
+        textColor(doc, MUTED);
+        doc.setFontSize(5.5);
+        doc.text(pt.date.slice(5), pt.x, bottom + 6, { align: "center" });
       }
-    }
-  }
+    });
 
-  // Line
-  doc.setDrawColor(PRIMARY[0], PRIMARY[1], PRIMARY[2]);
-  doc.setLineWidth(1.5);
-  for (let i = 0; i < pts.length - 1; i++) {
-    doc.line(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
-  }
+    // ── Stats cards below chart ──
+    const statsY = bottom + 14;
+    const scores = pts.map(p => p.score * 10);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const peak = Math.max(...scores);
+    const low  = Math.min(...scores);
+    const sw   = (pageW - M * 2) / 4;
 
-  // Dots + date labels
-  data.forEach((t, i) => {
-    const { x, y } = pts[i];
-    const mc = moodColor(t.mood);
-    doc.setFillColor(mc[0], mc[1], mc[2]);
-    doc.circle(x, y, 2, "F");
-    doc.setFillColor(BG[0], BG[1], BG[2]);
-    doc.circle(x, y, 1, "F");
-
-    // Date label (every 5th)
-    if (i % Math.max(1, Math.floor(data.length / 8)) === 0) {
+    [
+      { label: "Average", value: avg.toFixed(1)  },
+      { label: "Peak",    value: peak.toFixed(1) },
+      { label: "Lowest",  value: low.toFixed(1)  },
+      { label: "Entries", value: String(data.length) },
+    ].forEach((s, i) => {
+      const sx = M + i * sw + sw / 2;
+      fillRect(doc, M + i * sw + 2, statsY, sw - 4, 16, CARD, 3);
+      textColor(doc, WHITE);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text(s.value, sx, statsY + 9, { align: "center" });
       textColor(doc, MUTED);
-      doc.setFontSize(5.5);
-      const label = t.date.slice(5); // MM-DD
-      doc.text(label, x, chartY + chartH + 6, { align: "center" });
-    }
-  });
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "normal");
+      doc.text(s.label.toUpperCase(), sx, statsY + 14, { align: "center" });
+    });
+  }
 
-  // Y axis label
+  // Y-axis label
   textColor(doc, MUTED);
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text("Score", M, chartY + chartH / 2, { angle: 90, align: "center" });
-
-  // Stats summary below chart
-  const statsY = chartY + chartH + 16;
-  const validScores = data.filter(t => t.moodScore != null).map(t => t.moodScore! * 10);
-  const avg = validScores.length ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
-  const max = validScores.length ? Math.max(...validScores) : 0;
-  const min = validScores.length ? Math.min(...validScores) : 0;
-
-  const summaryStats = [
-    { label: "Average", value: avg.toFixed(1) },
-    { label: "Peak",    value: max.toFixed(1) },
-    { label: "Lowest",  value: min.toFixed(1) },
-    { label: "Entries", value: String(data.length) },
-  ];
-
-  const sw = (pageW - M * 2) / summaryStats.length;
-  summaryStats.forEach((s, i) => {
-    const sx = M + i * sw + sw / 2;
-    fillRect(doc, M + i * sw + 2, statsY, sw - 4, 16, CARD, 3);
-    textColor(doc, WHITE);
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text(s.value, sx, statsY + 9, { align: "center" });
-    textColor(doc, MUTED);
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.text(s.label.toUpperCase(), sx, statsY + 14, { align: "center" });
-  });
+  doc.text("Score", M - 2, chartY + chartH / 2, { angle: 90, align: "center" });
 }
 
 // ─── Pie chart page ───────────────────────────────────────────────────────────
