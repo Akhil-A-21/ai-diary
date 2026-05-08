@@ -10,7 +10,7 @@ import path from "path";
 import os from "os";
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 router.get("/entries", async (req: Request, res: Response) => {
@@ -98,7 +98,8 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     // ── Step 1: Transcribe audio via Whisper ──
     // Always use Whisper — never rely on the browser for transcription.
     // The lang field is an ISO 639-1 code (e.g. "ml", "hi", "en") sent from the frontend.
-    const recordingLang: string = (req.body.lang as string) || "en";
+    // req.body may be undefined if multer skips body parsing (no/empty multipart body).
+    const recordingLang: string = ((req.body as any)?.lang as string) || "en";
 
     if (req.file) {
       const tmpPath = path.join(os.tmpdir(), `video_${Date.now()}.webm`);
@@ -233,9 +234,10 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     } catch {}
 
     res.json({ ...updated, analysis });
-  } catch (err) {
-    console.error("Analyze route error:", err);
-    res.status(500).json({ error: "Analysis failed" });
+  } catch (err: any) {
+    console.error("Analyze route error:", err?.message || err);
+    console.error("Stack:", err?.stack);
+    res.status(500).json({ error: err?.message || "Analysis failed" });
   }
 });
 

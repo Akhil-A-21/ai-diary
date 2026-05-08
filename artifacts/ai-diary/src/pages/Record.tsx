@@ -144,12 +144,16 @@ export default function Record() {
         body: formData,
       });
 
-      if (!analyzeRes.ok) throw new Error("Analysis failed");
+      if (!analyzeRes.ok) {
+        const errData = await analyzeRes.json().catch(() => ({}));
+        throw new Error(errData.error || `Server error ${analyzeRes.status}`);
+      }
       setAnalysis(await analyzeRes.json());
       setStage("done");
-    } catch {
+    } catch (err: any) {
+      console.error("analyzeRecording failed:", err?.message);
       setStage("error");
-      toast({ title: "Analysis failed — please try again", variant: "destructive" });
+      toast({ title: err?.message || "Analysis failed — please try again", variant: "destructive" });
     }
   };
 
