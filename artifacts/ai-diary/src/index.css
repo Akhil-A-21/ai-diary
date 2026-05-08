@@ -39,7 +39,7 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* ── Light mode (default :root) ── */
+/* ── Light mode ── */
 :root {
   --background: 250 40% 97%;
   --foreground: 250 30% 12%;
@@ -76,9 +76,15 @@
   --sidebar-accent: 250 25% 92%;
   --sidebar-accent-foreground: 0 0% 10%;
   --sidebar-muted: 250 15% 50%;
+
+  /* Glass orb colours for light mode */
+  --orb-a: 260 80% 68%;
+  --orb-b: 290 70% 65%;
+  --orb-c: 230 80% 70%;
+  --orb-d: 310 65% 68%;
 }
 
-/* ── Dark mode (.dark class on <html>) ── */
+/* ── Dark mode ── */
 .dark {
   --background: 250 30% 6%;
   --foreground: 240 10% 90%;
@@ -113,6 +119,12 @@
   --sidebar-accent: 250 25% 14%;
   --sidebar-accent-foreground: 0 0% 100%;
   --sidebar-muted: 240 10% 50%;
+
+  /* Glass orb colours for dark mode */
+  --orb-a: 260 85% 60%;
+  --orb-b: 290 80% 50%;
+  --orb-c: 230 75% 58%;
+  --orb-d: 310 70% 45%;
 }
 
 @layer base {
@@ -121,15 +133,29 @@
     box-sizing: border-box;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.4s ease, color 0.4s ease;
+    overflow-x: hidden;
+    /* Light-mode orbs baked into the background */
+    background-image:
+      radial-gradient(circle 520px at 8% 5%,   hsl(260 80% 68% / 0.35), transparent),
+      radial-gradient(circle 480px at 94% 96%,  hsl(290 70% 65% / 0.30), transparent),
+      radial-gradient(circle 380px at 55% 50%,  hsl(230 80% 70% / 0.18), transparent),
+      radial-gradient(circle 300px at 20% 80%,  hsl(310 65% 68% / 0.22), transparent);
+    background-attachment: fixed;
   }
 
   .dark body {
     background-image:
-      radial-gradient(circle at 15% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
-      radial-gradient(circle at 85% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 40%);
+      radial-gradient(circle 600px at 8% 5%,   hsl(260 85% 60% / 0.45), transparent),
+      radial-gradient(circle 540px at 94% 96%,  hsl(290 80% 50% / 0.40), transparent),
+      radial-gradient(circle 420px at 55% 50%,  hsl(230 75% 58% / 0.25), transparent),
+      radial-gradient(circle 340px at 20% 80%,  hsl(310 70% 45% / 0.30), transparent);
     background-attachment: fixed;
   }
 
@@ -140,27 +166,78 @@
 }
 
 @layer utilities {
+
+  /* ── Primary glass card ── */
   .glass {
-    @apply backdrop-blur-xl border shadow-xl;
-    background-color: hsl(var(--card) / 0.7);
-    border-color: hsl(var(--border));
-    box-shadow: 0 8px 32px hsl(var(--background) / 0.3);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    background-color: hsl(var(--card) / 0.55);
+    border: 1px solid hsl(var(--border) / 0.7);
+    box-shadow:
+      0 4px 24px hsl(var(--background) / 0.15),
+      0 1px 2px hsl(var(--background) / 0.10),
+      inset 0 1px 0 hsl(0 0% 100% / 0.12);
   }
 
   .dark .glass {
-    @apply border-white/5 shadow-black/20;
-    background-color: hsl(var(--card) / 0.6);
+    background-color: hsl(var(--card) / 0.45);
+    border-color: hsl(0 0% 100% / 0.07);
+    box-shadow:
+      0 4px 32px rgba(0, 0, 0, 0.35),
+      0 1px 2px rgba(0, 0, 0, 0.20),
+      inset 0 1px 0 hsl(0 0% 100% / 0.06);
   }
 
+  /* ── Sidebar / overlay panel ── */
   .glass-panel {
-    @apply backdrop-blur-2xl border shadow-2xl;
-    background-color: hsl(var(--background) / 0.6);
-    border-color: hsl(var(--border));
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    background-color: hsl(var(--background) / 0.55);
+    border-color: hsl(var(--border) / 0.5);
+    box-shadow:
+      4px 0 40px hsl(var(--background) / 0.12),
+      inset -1px 0 0 hsl(0 0% 100% / 0.08);
   }
 
   .dark .glass-panel {
-    @apply border-white/10;
-    background-color: hsl(var(--background) / 0.4);
+    background-color: hsl(var(--background) / 0.42);
+    border-color: hsl(0 0% 100% / 0.06);
+    box-shadow:
+      4px 0 40px rgba(0, 0, 0, 0.4),
+      inset -1px 0 0 hsl(0 0% 100% / 0.04);
+  }
+
+  /* ── Elevated modal-like glass ── */
+  .glass-elevated {
+    backdrop-filter: blur(48px) saturate(200%);
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
+    background-color: hsl(var(--card) / 0.65);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.12),
+      0 8px 24px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 hsl(0 0% 100% / 0.18),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.04);
+  }
+
+  .dark .glass-elevated {
+    background-color: hsl(var(--card) / 0.52);
+    border-color: hsl(0 0% 100% / 0.09);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.5),
+      0 8px 24px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.06);
+  }
+
+  /* ── Orb background helper ── */
+  .orb {
+    position: fixed;
+    border-radius: 9999px;
+    pointer-events: none;
+    filter: blur(90px);
+    will-change: transform;
+    animation: orb-drift 18s ease-in-out infinite alternate;
   }
 
   .text-gradient {
@@ -171,19 +248,15 @@
     font-family: var(--font-display);
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     @apply rounded-full;
-    background: hsl(var(--border));
+    background: hsl(var(--border) / 0.8);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+    background: hsl(var(--muted-foreground) / 0.35);
   }
 }
 
@@ -193,6 +266,7 @@
 .sidebar-accent-bg { background-color: hsl(var(--sidebar-accent)); }
 .sidebar-muted-text { color: hsl(var(--sidebar-muted)); }
 
+/* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -204,3 +278,10 @@
   50%       { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
 }
 .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+
+@keyframes orb-drift {
+  0%   { transform: translate(0px, 0px) scale(1); }
+  33%  { transform: translate(30px, -20px) scale(1.05); }
+  66%  { transform: translate(-20px, 15px) scale(0.97); }
+  100% { transform: translate(10px, -10px) scale(1.02); }
+}
