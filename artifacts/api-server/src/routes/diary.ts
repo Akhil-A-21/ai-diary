@@ -119,15 +119,40 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
       transcript = `Diary entry recorded on ${new Date().toLocaleDateString()}.`;
     }
 
-    // ── Step 2: Mood & emotion analysis via GPT ──
-    const fallbackMoods = ["reflective", "calm", "energized", "happy", "grateful"];
+    // ── Step 2: Keyword-based mood fallback (used when GPT is unavailable) ──
+    const keywordMoods: { mood: string; score: number; words: string[] }[] = [
+      { mood: "happy", score: 8, words: ["happy", "joy", "joyful", "excited", "great", "amazing", "wonderful", "fantastic", "love", "laugh", "fun", "awesome", "good", "nice", "pleased", "delighted"] },
+      { mood: "grateful", score: 8, words: ["grateful", "thankful", "blessed", "appreciate", "appreciation", "gratitude", "fortunate", "lucky"] },
+      { mood: "anxious", score: 4, words: ["anxious", "anxiety", "nervous", "worried", "worry", "stress", "stressed", "overwhelmed", "panic", "fear", "scared", "dread"] },
+      { mood: "sad", score: 3, words: ["sad", "unhappy", "depressed", "miserable", "upset", "cry", "crying", "tears", "grief", "lonely", "hopeless", "down"] },
+      { mood: "angry", score: 3, words: ["angry", "anger", "furious", "frustrated", "frustration", "annoyed", "irritated", "mad", "rage"] },
+      { mood: "calm", score: 7, words: ["calm", "peaceful", "relaxed", "serene", "tranquil", "content", "quiet", "still", "comfortable"] },
+      { mood: "energized", score: 8, words: ["energized", "motivated", "productive", "accomplished", "active", "strong", "confident", "focused", "driven"] },
+      { mood: "reflective", score: 6, words: ["think", "thinking", "thought", "wonder", "wondering", "reflect", "reflection", "consider", "ponder", "realize", "realize", "introspect"] },
+    ];
+
+    const detectMoodFromText = (text: string): { mood: string; moodScore: number; energyLevel: number } => {
+      const lower = text.toLowerCase();
+      let bestMood = "reflective";
+      let bestScore = 6;
+      let bestCount = 0;
+      for (const { mood, score, words } of keywordMoods) {
+        const count = words.filter((w) => lower.includes(w)).length;
+        if (count > bestCount) { bestCount = count; bestMood = mood; bestScore = score; }
+      }
+      const energyMap: Record<string, number> = { happy: 8, grateful: 7, anxious: 5, sad: 3, angry: 6, calm: 5, energized: 9, reflective: 5 };
+      return { mood: bestMood, moodScore: bestScore, energyLevel: energyMap[bestMood] ?? 5 };
+    };
+
+    const keywordAnalysis = transcriptionError ? null : detectMoodFromText(transcript);
+
     let analysis: { mood: string; moodScore: number; energyLevel: number; summary: string; triggers: string[] } = {
-      mood: fallbackMoods[Math.floor(Math.random() * fallbackMoods.length)],
-      moodScore: 6,
-      energyLevel: 5,
+      mood: keywordAnalysis?.mood ?? "reflective",
+      moodScore: keywordAnalysis?.moodScore ?? 6,
+      energyLevel: keywordAnalysis?.energyLevel ?? 5,
       summary: transcriptionError
-        ? "Your entry has been saved. Transcription was unavailable this time — AI analysis will be available once your OpenAI quota refreshes."
-        : transcript.length > 200 ? transcript.slice(0, 200) + "…" : transcript,
+        ? "Your entry has been saved. Speak clearly into your microphone next time for transcription."
+        : `You said: "${transcript.length > 180 ? transcript.slice(0, 180) + "…" : transcript}"`,
       triggers: [],
     };
 
