@@ -13,6 +13,7 @@ import storageRouter from "./routes/storage";
 import healthRouter from "./routes/health";
 import pinRouter from "./routes/pin";
 import analyticsRouter from "./routes/analytics";
+import pushRouter from "./routes/push";
 import { authMiddleware } from "./middleware/auth";
 import { startScheduler } from "./lib/scheduler";
 import { sendTestEmail } from "./lib/email";
@@ -40,6 +41,7 @@ app.use("/api/storage", storageRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/pin", pinRouter);
 app.use("/api/health", healthRouter);
+app.use("/api/push", pushRouter);
 
 // Send a test email to the authenticated user
 app.post("/api/notifications/test", authMiddleware, async (req: Request, res: Response) => {

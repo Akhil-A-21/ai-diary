@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { db, userPreferences } from "./db";
 import { eq, and, lt, isNotNull } from "drizzle-orm";
 import { sendDailyReminderEmail, sendInactivityEmail } from "./email";
+import { sendPushToUser } from "./push";
 
 function getLocalHHMM(timezone: string): string {
   try {
@@ -16,16 +17,14 @@ function getLocalHHMM(timezone: string): string {
     const minute = parts.find((p) => p.type === "minute")?.value ?? "00";
     return `${hour}:${minute}`;
   } catch {
-    // Fallback to UTC
     const now = new Date();
     return `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}`;
   }
 }
 
 export function startScheduler() {
-  // ── Daily reminder ── runs every minute, sends at the user's chosen local time
+  // ── Daily reminder ── every minute, fires at the user's chosen local time
   cron.schedule("* * * * *", async () => {
-    if (!process.env.RESEND_API_KEY) return;
     try {
       const users = await db
         .select()
@@ -39,13 +38,22 @@ export function startScheduler() {
         const todayDate = new Date().toISOString().split("T")[0];
 
         if (localNow === reminderTime && user.lastReminderDate !== todayDate) {
-          // Mark as sent for today before sending to avoid duplicate sends
           await db
             .update(userPreferences)
             .set({ lastReminderDate: todayDate })
             .where(eq(userPreferences.userEmail, user.userEmail));
 
-          await sendDailyReminderEmail(user.userEmail, reminderTime);
+          // Send both email + push in parallel
+          await Promise.allSettled([
+            process.env.RESEND_API_KEY
+              ? sendDailyReminderEmail(user.userEmail, reminderTime)
+              : Promise.resolve(),
+            sendPushToUser(user.userEmail, {
+              title: "📔 Time to reflect",
+              body: `Your ${reminderTime} diary reminder — take a moment to capture how you feel today.`,
+              url: "/record",
+            }),
+          ]);
         }
       }
     } catch (err) {
@@ -53,9 +61,8 @@ export function startScheduler() {
     }
   });
 
-  // ── Inactivity alert ── runs once per day at 10:00 UTC
+  // ── Inactivity alert ── daily at 10:00 UTC
   cron.schedule("0 10 * * *", async () => {
-    if (!process.env.RESEND_API_KEY) return;
     try {
       const threeDaysAgo = new Date();
       threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -78,7 +85,16 @@ export function startScheduler() {
           (Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24)
         );
         if (daysMissed >= 3) {
-          await sendInactivityEmail(user.userEmail, daysMissed);
+          await Promise.allSettled([
+            process.env.RESEND_API_KEY
+              ? sendInactivityEmail(user.userEmail, daysMissed)
+              : Promise.resolve(),
+            sendPushToUser(user.userEmail, {
+              title: "💜 We miss you",
+              body: `It's been ${daysMissed} days since your last diary entry. Come back anytime.`,
+              url: "/",
+            }),
+          ]);
         }
       }
     } catch (err) {

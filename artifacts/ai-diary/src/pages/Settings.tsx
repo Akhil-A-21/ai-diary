@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bell, Shield, User, Sun, Moon, Save, Lock,
-  Mail, Clock, Loader2, CheckCircle2, AlertCircle, Send
+  Bell, Shield, User, Sun, Moon, Lock,
+  Mail, Clock, Loader2, CheckCircle2, AlertCircle, Send, Smartphone, BellOff
 } from "lucide-react";
 import { usePreferences, useUpdatePreferences, useSendTestEmail } from "../hooks/useApi";
 import { toast } from "../hooks/use-toast";
@@ -10,16 +10,47 @@ import AppLockSettings from "../components/AppLockSettings";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 
-function Toggle({
-  enabled,
-  onToggle,
-  testId,
-}: { enabled: boolean; onToggle: () => void; testId?: string }) {
+// ─── Push notification helpers ───────────────────────────────────────────────
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) throw new Error("Service workers not supported");
+  return navigator.serviceWorker.register("/sw.js");
+}
+
+async function subscribeToPush(vapidKey: string): Promise<PushSubscription> {
+  const reg = await registerServiceWorker();
+  await navigator.serviceWorker.ready;
+  return reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(vapidKey),
+  });
+}
+
+async function getCurrentSubscription(): Promise<PushSubscription | null> {
+  if (!("serviceWorker" in navigator)) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg) return null;
+  return reg.pushManager.getSubscription();
+}
+
+// ─── Reusable UI pieces ───────────────────────────────────────────────────────
+
+function Toggle({ enabled, onToggle, disabled, testId }: {
+  enabled: boolean; onToggle: () => void; disabled?: boolean; testId?: string;
+}) {
   return (
     <button
       onClick={onToggle}
+      disabled={disabled}
       data-testid={testId}
-      className="w-11 h-6 rounded-full relative transition-colors flex-shrink-0"
+      className="w-11 h-6 rounded-full relative transition-colors flex-shrink-0 disabled:opacity-40"
       style={{ background: enabled ? "hsl(var(--primary))" : "hsl(var(--muted))" }}
     >
       <div
@@ -30,9 +61,9 @@ function Toggle({
   );
 }
 
-function SectionCard({
-  title, icon, children,
-}: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function SectionCard({ title, icon, children }: {
+  title: string; icon: React.ReactNode; children: React.ReactNode;
+}) {
   return (
     <div className="glass rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
@@ -44,13 +75,48 @@ function SectionCard({
   );
 }
 
+type BtnState = "idle" | "loading" | "ok" | "err";
+
+function ActionButton({ state, idleLabel, loadingLabel, okLabel, errLabel, onClick }: {
+  state: BtnState; idleLabel: string; loadingLabel: string; okLabel: string; errLabel: string;
+  onClick: () => void;
+}) {
+  const isOk = state === "ok";
+  const isErr = state === "err";
+  return (
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      disabled={state === "loading"}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all disabled:opacity-60"
+      style={{
+        borderColor: isOk ? "#22c55e50" : isErr ? "#ef444450" : "hsl(var(--primary) / 0.4)",
+        color: isOk ? "#22c55e" : isErr ? "#ef4444" : "hsl(var(--primary))",
+        background: isOk ? "#22c55e10" : isErr ? "#ef444410" : "hsl(var(--primary) / 0.08)",
+      }}
+    >
+      {state === "loading" && <Loader2 size={12} className="animate-spin" />}
+      {state === "ok" && <CheckCircle2 size={12} />}
+      {state === "err" && <AlertCircle size={12} />}
+      {state === "idle" && <Send size={12} />}
+      {state === "loading" ? loadingLabel : state === "ok" ? okLabel : state === "err" ? errLabel : idleLabel}
+    </motion.button>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export default function Settings() {
   const { user } = useAuth();
   const { data: prefs, isLoading: prefsLoading } = usePreferences();
   const updatePrefs = useUpdatePreferences();
   const sendTestEmail = useSendTestEmail();
+
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [testEmailState, setTestEmailState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [testEmailState, setTestEmailState] = useState<BtnState>("idle");
+  const [pushState, setPushState] = useState<"unknown" | "unsupported" | "denied" | "subscribed" | "unsubscribed">("unknown");
+  const [testPushState, setTestPushState] = useState<BtnState>("idle");
+  const [pushLoading, setPushLoading] = useState(false);
 
   const { data: pinStatus, refetch: refetchPin } = useQuery({
     queryKey: ["pin-status"],
@@ -60,20 +126,29 @@ export default function Settings() {
     },
   });
 
-  // Silently sync browser timezone whenever preferences load
+  // Sync browser timezone silently
   useEffect(() => {
     if (!prefs) return;
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (prefs.timezone !== tz) {
-      updatePrefs.mutate({ timezone: tz });
-    }
+    if (prefs.timezone !== tz) updatePrefs.mutate({ timezone: tz });
   }, [prefs?.id]);
+
+  // Detect current push subscription state on mount
+  useEffect(() => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      setPushState("unsupported");
+      return;
+    }
+    if (Notification.permission === "denied") { setPushState("denied"); return; }
+    getCurrentSubscription().then((sub) => {
+      setPushState(sub ? "subscribed" : "unsubscribed");
+    });
+  }, []);
 
   const handleThemeToggle = () => {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
-    if (next === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
+    document.documentElement.classList.toggle("dark", next === "dark");
   };
 
   const handleUpdatePrefs = async (updates: Record<string, unknown>) => {
@@ -86,22 +161,86 @@ export default function Settings() {
     }
   };
 
-  const handleSendTestEmail = async () => {
-    setTestEmailState("sending");
+  const handleTestEmail = async () => {
+    setTestEmailState("loading");
     try {
       await sendTestEmail.mutateAsync();
-      setTestEmailState("sent");
+      setTestEmailState("ok");
       setTimeout(() => setTestEmailState("idle"), 4000);
       toast({ title: "Test email sent! Check your inbox." });
     } catch {
-      setTestEmailState("error");
+      setTestEmailState("err");
       setTimeout(() => setTestEmailState("idle"), 4000);
-      toast({ title: "Failed to send — check that RESEND_API_KEY is configured", variant: "destructive" });
+      toast({ title: "Failed to send test email", variant: "destructive" });
+    }
+  };
+
+  const handleEnablePush = useCallback(async () => {
+    setPushLoading(true);
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { setPushState("denied"); return; }
+
+      const res = await fetch("/api/push/vapid-public-key");
+      const { key } = await res.json();
+      const sub = await subscribeToPush(key);
+      const subJson = sub.toJSON() as { endpoint: string; keys: { p256dh: string; auth: string } };
+
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
+      });
+
+      setPushState("subscribed");
+      toast({ title: "Browser notifications enabled!" });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Could not enable push notifications", variant: "destructive" });
+    } finally {
+      setPushLoading(false);
+    }
+  }, []);
+
+  const handleDisablePush = useCallback(async () => {
+    setPushLoading(true);
+    try {
+      const sub = await getCurrentSubscription();
+      if (sub) {
+        await fetch("/api/push/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      setPushState("unsubscribed");
+      toast({ title: "Browser notifications disabled" });
+    } catch {
+      toast({ title: "Failed to disable notifications", variant: "destructive" });
+    } finally {
+      setPushLoading(false);
+    }
+  }, []);
+
+  const handleTestPush = async () => {
+    setTestPushState("loading");
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      if (!res.ok) throw new Error();
+      setTestPushState("ok");
+      setTimeout(() => setTestPushState("idle"), 4000);
+      toast({ title: "Test notification sent!" });
+    } catch {
+      setTestPushState("err");
+      setTimeout(() => setTestPushState("idle"), 4000);
+      toast({ title: "Failed — make sure notifications are enabled", variant: "destructive" });
     }
   };
 
   const emailToNotify = user?.email ?? "your email";
-  const hasResendKey = true; // server will error if not configured
+  const pushSupported = pushState !== "unsupported";
+  const pushEnabled = pushState === "subscribed";
 
   return (
     <div className="max-w-xl mx-auto space-y-6 pb-8">
@@ -110,12 +249,10 @@ export default function Settings() {
         <p className="text-sm mt-1 text-muted-foreground">Personalise your AI Diary experience</p>
       </div>
 
-      {/* ── Your Account ── */}
+      {/* ── Account ── */}
       <SectionCard title="Your Account" icon={<User size={15} />}>
         <div className="flex items-center gap-3">
-          {user?.picture && (
-            <img src={user.picture} alt="" className="w-10 h-10 rounded-full" />
-          )}
+          {user?.picture && <img src={user.picture} alt="" className="w-10 h-10 rounded-full" />}
           <div>
             <p className="text-sm font-medium text-white">{user?.name || "—"}</p>
             <p className="text-xs text-muted-foreground">{user?.email || "—"}</p>
@@ -130,29 +267,108 @@ export default function Settings() {
             <p className="text-sm font-medium text-white">Dark Mode</p>
             <p className="text-xs mt-0.5 text-muted-foreground">Switch between light and dark theme</p>
           </div>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleThemeToggle}
+          <motion.button whileTap={{ scale: 0.95 }} onClick={handleThemeToggle}
             className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium text-white"
-            style={{ borderColor: "hsl(var(--border))" }}
-          >
+            style={{ borderColor: "hsl(var(--border))" }}>
             {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
             {theme === "light" ? "Dark" : "Light"}
           </motion.button>
         </div>
       </SectionCard>
 
+      {/* ── Browser Notifications ── */}
+      <SectionCard title="Browser Notifications" icon={<Smartphone size={15} />}>
+        {!pushSupported ? (
+          <div className="flex items-start gap-2.5 text-sm text-muted-foreground">
+            <BellOff size={16} className="flex-shrink-0 mt-0.5" />
+            <p>Push notifications are not supported in this browser.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Get notified directly on this device — even when AI Diary isn't open. Fires at the same time as your email reminder.
+            </p>
+
+            {/* Status + toggle row */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-white">Push Notifications</p>
+                <p className="text-xs mt-0.5 text-muted-foreground">
+                  {pushState === "denied"
+                    ? "Blocked by browser — allow in site settings"
+                    : pushEnabled
+                    ? "Active on this device"
+                    : "Off — tap to enable"}
+                </p>
+              </div>
+
+              {pushState === "denied" ? (
+                <span className="text-xs text-orange-400 font-medium px-2 py-1 rounded-lg"
+                  style={{ background: "rgba(251,146,60,0.1)" }}>Blocked</span>
+              ) : (
+                <div className="flex items-center gap-2">
+                  {pushLoading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
+                  <Toggle
+                    enabled={pushEnabled}
+                    disabled={pushLoading}
+                    onToggle={pushEnabled ? handleDisablePush : handleEnablePush}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Subscribed state extras */}
+            <AnimatePresence>
+              {pushEnabled && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-1 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-white">Test Notification</p>
+                      <p className="text-xs mt-0.5 text-muted-foreground">Send one right now to check it works</p>
+                    </div>
+                    <ActionButton
+                      state={testPushState}
+                      idleLabel="Send test"
+                      loadingLabel="Sending…"
+                      okLabel="Sent!"
+                      errLabel="Failed"
+                      onClick={handleTestPush}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Denied help */}
+            <AnimatePresence>
+              {pushState === "denied" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="text-xs text-muted-foreground px-3 py-2.5 rounded-xl"
+                  style={{ background: "rgba(251,146,60,0.06)", border: "1px solid rgba(251,146,60,0.15)" }}>
+                  To re-enable: click the 🔒 icon in your browser address bar → Notifications → Allow
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+      </SectionCard>
+
       {/* ── Email Notifications ── */}
       <SectionCard title="Email Notifications" icon={<Bell size={15} />}>
         {prefsLoading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-            <Loader2 size={14} className="animate-spin" />
-            Loading…
+            <Loader2 size={14} className="animate-spin" /> Loading…
           </div>
         ) : prefs ? (
           <div className="space-y-5">
             {/* To address */}
-            <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl" style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+            <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl"
+              style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
               <Mail size={14} style={{ color: "hsl(var(--primary))" }} className="flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-white/70">Emails sent to:</p>
@@ -165,7 +381,7 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-white">Daily Diary Reminder</p>
-                  <p className="text-xs mt-0.5 text-muted-foreground">Email you to record your diary each day</p>
+                  <p className="text-xs mt-0.5 text-muted-foreground">Email + push at your chosen time each day</p>
                 </div>
                 <Toggle
                   enabled={prefs.reminderEnabled}
@@ -176,15 +392,11 @@ export default function Settings() {
 
               <AnimatePresence>
                 {prefs.reminderEnabled && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="flex items-center gap-2 pl-0">
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                    <div className="flex items-center gap-2">
                       <Clock size={13} className="text-muted-foreground flex-shrink-0" />
-                      <label className="text-xs text-muted-foreground">Send at:</label>
+                      <label className="text-xs text-muted-foreground">Remind me at:</label>
                       <input
                         type="time"
                         value={prefs.reminderTime || "20:00"}
@@ -202,14 +414,13 @@ export default function Settings() {
               </AnimatePresence>
             </div>
 
-            {/* Divider */}
             <div className="h-px" style={{ background: "hsl(var(--border))" }} />
 
             {/* Inactivity alert */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-white">3-Day Inactivity Alert</p>
-                <p className="text-xs mt-0.5 text-muted-foreground">Email you if you haven't logged in for 3 days</p>
+                <p className="text-xs mt-0.5 text-muted-foreground">Email + push if you haven't logged in for 3 days</p>
               </div>
               <Toggle
                 enabled={prefs.inactivityAlertEnabled}
@@ -218,44 +429,22 @@ export default function Settings() {
               />
             </div>
 
-            {/* Divider */}
             <div className="h-px" style={{ background: "hsl(var(--border))" }} />
 
             {/* Test email */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-white">Test Email</p>
-                <p className="text-xs mt-0.5 text-muted-foreground">Send a test to verify your notifications work</p>
+                <p className="text-xs mt-0.5 text-muted-foreground">Verify your email reminders are working</p>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSendTestEmail}
-                disabled={testEmailState === "sending"}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all disabled:opacity-60"
-                style={{
-                  borderColor: testEmailState === "sent"
-                    ? "#22c55e50"
-                    : testEmailState === "error"
-                    ? "#ef444450"
-                    : "hsl(var(--primary) / 0.4)",
-                  color: testEmailState === "sent"
-                    ? "#22c55e"
-                    : testEmailState === "error"
-                    ? "#ef4444"
-                    : "hsl(var(--primary))",
-                  background: testEmailState === "sent"
-                    ? "#22c55e10"
-                    : testEmailState === "error"
-                    ? "#ef444410"
-                    : "hsl(var(--primary) / 0.08)",
-                }}
-              >
-                {testEmailState === "sending" && <Loader2 size={12} className="animate-spin" />}
-                {testEmailState === "sent" && <CheckCircle2 size={12} />}
-                {testEmailState === "error" && <AlertCircle size={12} />}
-                {testEmailState === "idle" && <Send size={12} />}
-                {testEmailState === "sending" ? "Sending…" : testEmailState === "sent" ? "Sent!" : testEmailState === "error" ? "Failed" : "Send test"}
-              </motion.button>
+              <ActionButton
+                state={testEmailState}
+                idleLabel="Send test"
+                loadingLabel="Sending…"
+                okLabel="Sent!"
+                errLabel="Failed"
+                onClick={handleTestEmail}
+              />
             </div>
           </div>
         ) : null}
@@ -267,8 +456,7 @@ export default function Settings() {
           status={pinStatus}
           onStatusChange={() => {
             refetchPin();
-            const email = user?.email || "";
-            sessionStorage.removeItem(`ai_diary_unlocked_${email}`);
+            sessionStorage.removeItem(`ai_diary_unlocked_${user?.email || ""}`);
           }}
         />
       </SectionCard>
@@ -276,7 +464,7 @@ export default function Settings() {
       {/* ── Privacy ── */}
       <SectionCard title="Privacy" icon={<Shield size={15} />}>
         <p className="text-sm text-muted-foreground">
-          Your diary entries are private and isolated to your account. No data is shared with third parties. AI analysis is processed securely via Groq. Email notifications are sent only to your verified Google account email.
+          Your diary entries are private and isolated to your account. No data is shared with third parties. AI analysis is processed securely via Groq. Notifications are sent only to your verified account email and registered devices.
         </p>
       </SectionCard>
 

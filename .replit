@@ -53,3 +53,10 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BBNhP30285pv7jjHehkyPX033PbJuJZHLr7yiDBtqtWmJlypgUIhgXk-dzJOs2FU25nkU48v9TS47qL4fs8lvDQ"
+VAPID_PRIVATE_KEY = "Y_m5H8MPgr_WBD-03EuetyBJtAQzLTh4RztRMSFF7so"
+VAPID_EMAIL = "mailto:admin@aidiary.app"
