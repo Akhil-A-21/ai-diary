@@ -95,8 +95,8 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     let transcript = req.body.transcript || "";
     let transcriptionError = false;
 
-    // ── Step 1: Transcribe audio via Whisper ──
-    if (req.file) {
+    // ── Step 1: Transcribe audio via Whisper (only if browser didn't provide transcript) ──
+    if (req.file && !transcript) {
       const tmpPath = path.join(os.tmpdir(), `video_${Date.now()}.webm`);
       try {
         fs.writeFileSync(tmpPath, req.file.buffer);
