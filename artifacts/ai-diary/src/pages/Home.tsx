@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Video, Flame, Sparkles, Brain, Heart, TrendingUp,
-  CheckCircle2, ArrowRight, Calendar, Copy, Check, Wind
+  CheckCircle2, Circle, ArrowRight, Calendar, Copy, Check, Wind, Target
 } from "lucide-react";
 import {
   useStreak, useMotivationalQuote, useAffirmation, useMoodPrediction,
