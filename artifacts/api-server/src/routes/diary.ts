@@ -642,6 +642,64 @@ router.get("/welcome-back", async (req: Request, res: Response) => {
   }
 });
 
+// ── GET /diary/emotion-reasons/:mood ────────────────────────────────────────
+router.get("/emotion-reasons/:mood", async (req: Request, res: Response) => {
+  try {
+    const userEmail = getUserEmail(req);
+    const mood = req.params.mood;
+
+    const entries = await db
+      .select({
+        id: diaryEntries.id,
+        title: diaryEntries.title,
+        transcript: diaryEntries.transcript,
+        summary: diaryEntries.summary,
+        entryDate: diaryEntries.entryDate,
+        triggers: diaryEntries.triggers,
+      })
+      .from(diaryEntries)
+      .where(and(eq(diaryEntries.userEmail, userEmail), eq(diaryEntries.mood, mood)))
+      .orderBy(desc(diaryEntries.createdAt))
+      .limit(10);
+
+    if (entries.length === 0) return res.json({ reasons: [], entries: [] });
+
+    const context = entries
+      .map((e) => `Entry "${e.title}" (${e.entryDate}): ${e.summary || e.transcript || ""}${e.triggers?.length ? `. Key feelings: ${e.triggers.join(", ")}` : ""}`)
+      .join("\n\n");
+
+    let reasons: string[] = [];
+    try {
+      const response = await openai.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          {
+            role: "system",
+            content: `You are an empathetic emotional analyst. Based ONLY on the user's actual diary entries below, extract 3-5 specific, personal reasons why they feel "${mood}". Each reason must be grounded in something they actually wrote — not generic advice. Return JSON: { reasons: string[] } where each reason is one concise sentence starting with "You feel ${mood} because". Return ONLY valid JSON, no markdown.`,
+          },
+          { role: "user", content: context },
+        ],
+      });
+      const parsed = JSON.parse((response.choices[0].message.content || "{}").replace(/```json\n?|\n?```/g, "").trim());
+      reasons = parsed.reasons || [];
+    } catch (err: any) {
+      console.error("Emotion reasons AI failed:", err?.message);
+    }
+
+    if (reasons.length === 0) {
+      const allTriggers = entries.flatMap((e) => e.triggers || []);
+      const unique = [...new Set(allTriggers)];
+      reasons = unique.length > 0
+        ? unique.slice(0, 4).map((t) => `You feel ${mood} because of "${t}"`)
+        : [`You have felt ${mood} across ${entries.length} diary ${entries.length === 1 ? "entry" : "entries"}`];
+    }
+
+    res.json({ reasons, entries: entries.map((e) => ({ id: e.id, title: e.title, date: e.entryDate })) });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to analyse emotion reasons" });
+  }
+});
+
 // ── GET /diary/search ───────────────────────────────────────────────────────
 router.get("/search", async (req: Request, res: Response) => {
   try {

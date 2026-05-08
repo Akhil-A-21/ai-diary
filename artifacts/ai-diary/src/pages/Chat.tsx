@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Sparkles, Loader2 } from "lucide-react";
+import { Send, Sparkles, Loader2, ArrowLeft } from "lucide-react";
+import { useLocation } from "wouter";
 import { toast } from "../hooks/use-toast";
 
 interface Message {
@@ -9,6 +10,7 @@ interface Message {
 }
 
 export default function Chat() {
+  const [, setLocation] = useLocation();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -17,12 +19,60 @@ export default function Chat() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [contextBanner, setContextBanner] = useState<{ mood: string; reason: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const autoSentRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const mood = params.get("mood");
+    const reason = params.get("reason");
+    if (mood && reason) {
+      autoSentRef.current = true;
+      setContextBanner({ mood, reason });
+      const autoMsg = `I've been feeling ${mood} a lot lately. ${reason}. Can you help me understand this better and give me some practical methods to work through it?`;
+      setTimeout(() => sendAutoMessage(autoMsg), 600);
+    }
+  }, []);
+
+  const sendAutoMessage = async (text: string) => {
+    const userMsg: Message = { role: "user", content: text };
+    const newMessages: Message[] = [
+      {
+        role: "assistant",
+        content: "Hi, I'm Aura 💜 I'm here to listen, support, and help you process whatever's on your mind. How are you feeling today?",
+      },
+      userMsg,
+    ];
+    setMessages(newMessages);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-email": localStorage.getItem("userEmail") || "demo@aivideodiary.app",
+        },
+        body: JSON.stringify({ messages: newMessages }),
+      });
+
+      if (!res.ok) throw new Error("Chat failed");
+      const reply = await res.json();
+      setMessages([...newMessages, { role: "assistant", content: reply.content }]);
+    } catch {
+      toast({ title: "Failed to connect to Aura", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -62,8 +112,18 @@ export default function Chat() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-4 flex-shrink-0">
+      <div className="mb-3 flex-shrink-0">
         <div className="flex items-center gap-3">
+          {contextBanner && (
+            <button
+              onClick={() => setLocation("/analytics")}
+              className="flex items-center gap-1 text-xs mr-1"
+              style={{ color: "hsl(var(--muted-foreground))" }}
+            >
+              <ArrowLeft size={13} />
+              Analytics
+            </button>
+          )}
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
             style={{ background: "hsl(var(--primary))" }}
@@ -79,6 +139,26 @@ export default function Chat() {
             Online
           </div>
         </div>
+
+        {/* Context banner — shown when navigated from Analytics */}
+        {contextBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 flex items-start gap-2.5 px-3 py-2.5 rounded-xl border text-xs"
+            style={{ background: "hsl(var(--primary) / 0.08)", borderColor: "hsl(var(--primary) / 0.25)" }}
+          >
+            <Sparkles size={12} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--primary))" }} />
+            <div>
+              <span className="font-semibold capitalize" style={{ color: "hsl(var(--primary))" }}>
+                Talking about: {contextBanner.mood}
+              </span>
+              <p className="mt-0.5 leading-snug" style={{ color: "hsl(240 8% 65%)" }}>
+                {contextBanner.reason}
+              </p>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Messages */}
@@ -106,6 +186,7 @@ export default function Chat() {
                   background: msg.role === "user" ? "hsl(var(--primary))" : undefined,
                   color: msg.role === "user" ? "white" : "hsl(var(--foreground))",
                   borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+                  whiteSpace: "pre-wrap",
                 }}
                 data-testid={`message-${msg.role}-${i}`}
               >
@@ -156,9 +237,7 @@ export default function Chat() {
           onKeyDown={handleKeyDown}
           placeholder="Share what's on your mind..."
           className="flex-1 px-4 py-3 rounded-2xl text-sm outline-none text-white placeholder:text-muted-foreground glass"
-          style={{
-            color: "hsl(var(--foreground))",
-          }}
+          style={{ color: "hsl(var(--foreground))" }}
           data-testid="input-chat"
         />
         <motion.button

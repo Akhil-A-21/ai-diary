@@ -82,6 +82,14 @@ export const useKindMessage = () =>
 export const useEmotionPatterns = () =>
   useQuery({ queryKey: ["emotion-patterns"], queryFn: () => apiFetch<{ patterns: { mood: string; count: number }[]; insight: string }>("/diary/emotion-patterns") });
 
+export const useEmotionReasons = (mood: string | null) =>
+  useQuery({
+    queryKey: ["emotion-reasons", mood],
+    queryFn: () => apiFetch<{ reasons: string[]; entries: { id: number; title: string; date: string }[] }>(`/diary/emotion-reasons/${mood}`),
+    enabled: !!mood,
+    staleTime: 1000 * 60 * 5,
+  });
+
 // Goals
 export const useGoals = () =>
   useQuery({ queryKey: ["goals"], queryFn: () => apiFetch<Goal[]>("/goals") });

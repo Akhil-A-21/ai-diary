@@ -1,7 +1,9 @@
-import { motion } from "framer-motion";
-import { TrendingUp, Brain, Shield, BarChart2 } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
+import { TrendingUp, Brain, Shield, BarChart2, ChevronDown, ChevronRight, Loader2, MessageCircle, X } from "lucide-react";
 import {
-  useMoodTrends, useResilienceScore, useEmotionPatterns
+  useMoodTrends, useResilienceScore, useEmotionPatterns, useEmotionReasons
 } from "../hooks/useApi";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -19,10 +21,99 @@ function GlassCard({ children, className = "" }: { children: React.ReactNode; cl
 
 const MOOD_COLORS = ["#8b5cf6", "#ec4899", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#94a3b8"];
 
+const MOOD_EMOJIS: Record<string, string> = {
+  happy: "😊", sad: "😢", anxious: "😰", calm: "😌",
+  energized: "⚡", reflective: "🤔", grateful: "🙏", angry: "😤",
+};
+
+function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: string; onClose: () => void }) {
+  const [, setLocation] = useLocation();
+  const { data, isLoading } = useEmotionReasons(mood);
+
+  const handleReasonClick = (reason: string) => {
+    const params = new URLSearchParams({
+      mood,
+      reason,
+    });
+    setLocation(`/chat?${params.toString()}`);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
+      className="overflow-hidden"
+    >
+      <div
+        className="mt-3 rounded-xl p-4 border"
+        style={{ background: color + "08", borderColor: color + "25" }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color }}>
+            Why you feel {mood}
+          </p>
+          <button onClick={onClose} className="p-0.5 rounded-md hover:bg-white/10 transition-colors">
+            <X size={13} style={{ color: "hsl(240 8% 50%)" }} />
+          </button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center gap-2 py-3">
+            <Loader2 size={14} className="animate-spin" style={{ color }} />
+            <span className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>Analysing your entries…</span>
+          </div>
+        ) : data?.reasons.length === 0 ? (
+          <p className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>
+            No diary entries with this mood yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-xs mb-3" style={{ color: "hsl(240 8% 55%)" }}>
+              Tap a reason to talk to Aura about it
+            </p>
+            {data?.reasons.map((reason, i) => (
+              <motion.button
+                key={i}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.06 }}
+                onClick={() => handleReasonClick(reason)}
+                className="w-full text-left px-3 py-2.5 rounded-lg border text-sm flex items-start gap-2.5 group transition-all"
+                style={{
+                  background: "hsl(240 15% 10%)",
+                  borderColor: "hsl(240 12% 20%)",
+                  color: "hsl(240 10% 80%)",
+                }}
+                whileHover={{ scale: 1.01, borderColor: color }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <MessageCircle
+                  size={13}
+                  className="flex-shrink-0 mt-0.5 transition-colors"
+                  style={{ color: "hsl(240 8% 45%)" }}
+                />
+                <span className="flex-1 leading-snug">{reason}</span>
+                <ChevronRight
+                  size={13}
+                  className="flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color }}
+                />
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Analytics() {
   const { data: moodTrends = [] } = useMoodTrends();
   const { data: resilience } = useResilienceScore();
   const { data: patterns } = useEmotionPatterns();
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
 
   const chartData = moodTrends.slice(0, 30).reverse().map((t) => ({
     date: t.date,
@@ -117,39 +208,100 @@ export default function Analytics() {
         </GlassCard>
       </motion.div>
 
-      {/* Emotion Patterns */}
+      {/* Emotion Patterns — interactive */}
       {patterns && patterns.patterns.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <GlassCard>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <Brain className="w-4 h-4" style={{ color: "hsl(var(--primary))" }} />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emotion Patterns</span>
             </div>
-            <div className="grid md:grid-cols-2 gap-6 items-center">
+            <p className="text-xs mb-4" style={{ color: "hsl(240 8% 45%)" }}>
+              Tap an emotion to see why you feel that way
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-6 items-start">
               <ResponsiveContainer width="100%" height={180}>
                 <PieChart>
-                  <Pie data={patterns.patterns} dataKey="count" nameKey="mood" cx="50%" cy="50%" outerRadius={70} label={({ mood }) => mood}>
-                    {patterns.patterns.map((_, i) => (
-                      <Cell key={i} fill={MOOD_COLORS[i % MOOD_COLORS.length]} />
+                  <Pie
+                    data={patterns.patterns}
+                    dataKey="count"
+                    nameKey="mood"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={70}
+                    label={({ mood }) => mood}
+                    onClick={(d) => setSelectedMood(selectedMood === d.mood ? null : d.mood)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {patterns.patterns.map((p, i) => (
+                      <Cell
+                        key={i}
+                        fill={MOOD_COLORS[i % MOOD_COLORS.length]}
+                        opacity={selectedMood && selectedMood !== p.mood ? 0.4 : 1}
+                      />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
-              <div>
-                <p className="text-sm leading-relaxed text-muted-foreground mb-3">{patterns.insight}</p>
-                <div className="space-y-1.5">
-                  {patterns.patterns.map((p, i) => (
-                    <div key={p.mood} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: MOOD_COLORS[i % MOOD_COLORS.length] }} />
-                        <span className="capitalize text-white/80">{p.mood}</span>
-                      </div>
-                      <span className="font-medium text-white">{p.count}x</span>
+
+              <div className="space-y-1">
+                {patterns.patterns.map((p, i) => {
+                  const color = MOOD_COLORS[i % MOOD_COLORS.length];
+                  const isSelected = selectedMood === p.mood;
+                  return (
+                    <div key={p.mood}>
+                      <motion.button
+                        onClick={() => setSelectedMood(isSelected ? null : p.mood)}
+                        className="w-full flex items-center justify-between text-sm px-2.5 py-2 rounded-lg transition-colors"
+                        style={{
+                          background: isSelected ? color + "15" : "transparent",
+                          border: `1px solid ${isSelected ? color + "40" : "transparent"}`,
+                        }}
+                        whileHover={{ backgroundColor: color + "10" }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform"
+                            style={{ background: color, transform: isSelected ? "scale(1.3)" : "scale(1)" }}
+                          />
+                          <span className="text-base mr-1">{MOOD_EMOJIS[p.mood] || "💭"}</span>
+                          <span className="capitalize font-medium" style={{ color: isSelected ? color : "hsl(240 10% 80%)" }}>
+                            {p.mood}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white">{p.count}x</span>
+                          <ChevronDown
+                            size={13}
+                            style={{
+                              color,
+                              transform: isSelected ? "rotate(180deg)" : "rotate(0deg)",
+                              transition: "transform 0.2s",
+                            }}
+                          />
+                        </div>
+                      </motion.button>
+
+                      <AnimatePresence>
+                        {isSelected && (
+                          <EmotionReasonsPanel
+                            mood={p.mood}
+                            color={color}
+                            onClose={() => setSelectedMood(null)}
+                          />
+                        )}
+                      </AnimatePresence>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
+            </div>
+
+            <div className="mt-4 pt-4 border-t" style={{ borderColor: "hsl(240 12% 18%)" }}>
+              <p className="text-sm leading-relaxed text-muted-foreground">{patterns.insight}</p>
             </div>
           </GlassCard>
         </motion.div>
