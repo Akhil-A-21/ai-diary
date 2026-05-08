@@ -12,6 +12,7 @@ import storageRouter from "./routes/storage";
 import healthRouter from "./routes/health";
 import pinRouter from "./routes/pin";
 import analyticsRouter from "./routes/analytics";
+import { authMiddleware } from "./middleware/auth";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -20,6 +21,9 @@ const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// Apply auth middleware to all /api routes (verifies Google token when present)
+app.use("/api", authMiddleware);
 
 app.use("/api/diary", diaryRouter);
 app.use("/api/goals", goalsRouter);

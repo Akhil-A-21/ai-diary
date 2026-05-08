@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Video, List, BarChart2, Calendar, Target,
   Heart, Grid, Activity, MessageCircle, Settings,
-  Menu, X, Sparkles
+  Menu, X, Sparkles, LogOut, ChevronDown
 } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useAuth } from "../context/AuthContext";
 
 const navItems = [
   { href: "/", icon: Home, label: "Home" },
@@ -26,9 +27,59 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+function UserCard({ onLogout }: { onLogout: () => void }) {
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  if (!user) return null;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
+      >
+        <img
+          src={user.picture}
+          alt={user.name}
+          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+          referrerPolicy="no-referrer"
+        />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+          <p className="text-[10px] truncate" style={{ color: "hsl(240 8% 50%)" }}>{user.email}</p>
+        </div>
+        <ChevronDown size={13} className={cn("flex-shrink-0 text-slate-500 transition-transform", open && "rotate-180")} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="absolute bottom-full left-0 right-0 mb-1 rounded-xl border overflow-hidden"
+            style={{ background: "hsl(240 15% 13%)", borderColor: "hsl(240 12% 22%)" }}
+          >
+            <button
+              onClick={() => { setOpen(false); onLogout(); }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm hover:bg-white/5 transition-colors"
+              style={{ color: "hsl(0 72% 65%)" }}
+            >
+              <LogOut size={14} />
+              Sign out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { logout } = useAuth();
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "hsl(var(--background))" }}>
@@ -77,12 +128,9 @@ export default function Layout({ children }: LayoutProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t" style={{ borderColor: "hsl(var(--sidebar-accent))" }}>
-          <div className="rounded-xl p-3" style={{ background: "hsl(var(--sidebar-accent))" }}>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Record your day. Discover your patterns. Grow with Aura.
-            </p>
-          </div>
+        {/* User profile at bottom */}
+        <div className="p-3 border-t" style={{ borderColor: "hsl(var(--sidebar-accent))" }}>
+          <UserCard onLogout={logout} />
         </div>
       </aside>
 
@@ -119,9 +167,9 @@ export default function Layout({ children }: LayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="md:hidden fixed top-0 left-0 bottom-0 z-40 w-64 sidebar-bg pt-14 overflow-y-auto"
+              className="md:hidden fixed top-0 left-0 bottom-0 z-40 w-64 sidebar-bg pt-14 overflow-y-auto flex flex-col"
             >
-              <nav className="p-3 space-y-0.5">
+              <nav className="flex-1 p-3 space-y-0.5">
                 {navItems.map((item) => {
                   const active = location === item.href;
                   return (
@@ -140,6 +188,9 @@ export default function Layout({ children }: LayoutProps) {
                   );
                 })}
               </nav>
+              <div className="p-3 border-t" style={{ borderColor: "hsl(var(--sidebar-accent))" }}>
+                <UserCard onLogout={() => { setMobileOpen(false); logout(); }} />
+              </div>
             </motion.aside>
           </>
         )}
