@@ -19,7 +19,7 @@ const navItems = [
   { href: "/gratitude", icon: Heart, label: "Gratitude" },
   { href: "/pixels", icon: Grid, label: "Year in Pixels" },
   { href: "/habits", icon: Activity, label: "Habits" },
-  { href: "/chat", icon: MessageCircle, label: "Aura Chat" },
+  { href: "/chat", icon: MessageCircle, label: "Chat Assistant" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
