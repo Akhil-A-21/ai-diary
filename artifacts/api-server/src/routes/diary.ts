@@ -146,13 +146,40 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
 
     const keywordAnalysis = transcriptionError ? null : detectMoodFromText(transcript);
 
+    // Build a readable summary from the transcript without needing GPT
+    const buildFallbackSummary = (text: string): string => {
+      const sentences = text
+        .replace(/([.!?])\s+/g, "$1\n")
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 15);
+      if (sentences.length === 0) return text.length > 200 ? text.slice(0, 200) + "…" : text;
+      // Pick up to 3 sentences that best represent the entry
+      const picked = sentences.slice(0, 3).join(" ");
+      const mood = keywordAnalysis?.mood ?? "reflective";
+      const moodPhrases: Record<string, string> = {
+        happy: "You seemed in great spirits as you shared",
+        grateful: "A warm sense of gratitude came through as you shared",
+        anxious: "You expressed some stress and worry as you shared",
+        sad: "There was a sense of sadness as you shared",
+        angry: "Some frustration came through as you shared",
+        calm: "You sounded calm and grounded as you shared",
+        energized: "You were full of energy and motivation as you shared",
+        reflective: "In a thoughtful mood, you shared",
+      };
+      const opener = moodPhrases[mood] ?? "You shared";
+      // Clean up the transcript a bit: lowercase first word after opener
+      const firstSentence = sentences[0].replace(/^I /, "that you ");
+      return `${opener}: ${firstSentence}${sentences.length > 1 ? " " + sentences.slice(1, 3).join(" ") : ""}`;
+    };
+
     let analysis: { mood: string; moodScore: number; energyLevel: number; summary: string; triggers: string[] } = {
       mood: keywordAnalysis?.mood ?? "reflective",
       moodScore: keywordAnalysis?.moodScore ?? 6,
       energyLevel: keywordAnalysis?.energyLevel ?? 5,
       summary: transcriptionError
         ? "Your entry has been saved. Speak clearly into your microphone next time for transcription."
-        : `You said: "${transcript.length > 180 ? transcript.slice(0, 180) + "…" : transcript}"`,
+        : buildFallbackSummary(transcript),
       triggers: [],
     };
 
