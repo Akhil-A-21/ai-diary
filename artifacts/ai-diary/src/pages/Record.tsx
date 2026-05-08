@@ -36,6 +36,7 @@ export default function Record() {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [selectedLang, setSelectedLang] = useState("en-US");
   const [audioOnly, setAudioOnly] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
 
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -44,6 +45,10 @@ export default function Record() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef("");
+  // Keep a ref so stale closures (useCallback) always read the latest language
+  const selectedLangRef = useRef(selectedLang);
+  // Sync ref whenever the language changes
+  useEffect(() => { selectedLangRef.current = selectedLang; }, [selectedLang]);
 
   const createEntry = useCreateEntry();
   const { data: journalPrompt, refetch: refetchPrompt } = useJournalPrompt();
@@ -89,14 +94,19 @@ export default function Record() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
+    // Always use the ref — never the stale closure value
+    const lang = selectedLangRef.current;
+
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = selectedLang;
+    recognition.maxAlternatives = 1;
+    recognition.lang = lang;
 
     finalTranscriptRef.current = "";
     setLiveTranscript("");
     setFinalTranscript("");
+    setSpeechError(null);
 
     recognition.onresult = (e: any) => {
       let interim = "";
@@ -113,15 +123,29 @@ export default function Record() {
       setLiveTranscript(interim);
     };
 
-    recognition.onerror = () => {};
+    recognition.onerror = (e: any) => {
+      const ignorable = ["no-speech", "aborted"];
+      if (ignorable.includes(e.error)) return;
+      // language-not-supported or network errors — show a helpful message
+      if (e.error === "language-not-supported") {
+        setSpeechError(`"${lang}" is not supported by your browser's speech recognition. Try switching to English or open the app in Google Chrome.`);
+      } else if (e.error === "network") {
+        setSpeechError("Speech recognition needs an internet connection.");
+      } else {
+        setSpeechError(`Speech recognition error: ${e.error}. The video will still be saved.`);
+      }
+    };
+
     recognition.onend = () => {
-      // Auto-restart if still recording
+      // Auto-restart if still recording (handles the 60-second Chrome timeout)
       if (mediaRecorderRef.current?.state === "recording") {
         try { recognition.start(); } catch {}
       }
     };
 
-    try { recognition.start(); } catch {}
+    try { recognition.start(); } catch (err) {
+      setSpeechError("Could not start speech recognition. Your audio will still be saved.");
+    }
     recognitionRef.current = recognition;
   };
 
@@ -464,6 +488,18 @@ export default function Record() {
           </motion.div>
         )}
 
+        {/* Speech recognition error overlay */}
+        {stage === "recording" && speechError && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="absolute top-14 left-4 right-4 flex items-start gap-2 px-3 py-2.5 rounded-xl text-xs leading-relaxed"
+            style={{ background: "rgba(245,158,11,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(245,158,11,0.3)", color: "rgba(255,220,100,0.95)" }}
+          >
+            <AlertCircle size={13} className="flex-shrink-0 mt-0.5 text-amber-400" />
+            {speechError}
+          </motion.div>
+        )}
+
         {/* Live transcript overlay while recording */}
         {stage === "recording" && (finalTranscript || liveTranscript) && (
           <div
@@ -520,17 +556,22 @@ export default function Record() {
 
             {/* Show transcript if captured */}
             {finalTranscript ? (
-              <div className="rounded-xl border p-3" style={{ background: "hsl(240 15% 13%)", borderColor: "hsl(240 12% 20%)" }}>
+              <div className="glass rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Mic size={12} style={{ color: "hsl(var(--primary))" }} />
-                  <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "hsl(240 8% 50%)" }}>Transcript captured</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Transcript captured</p>
                 </div>
-                <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 72%)" }}>{finalTranscript}</p>
+                <p className="text-sm leading-relaxed text-white/80">{finalTranscript}</p>
+              </div>
+            ) : speechError ? (
+              <div className="glass rounded-xl p-3 flex items-start gap-2 border border-amber-500/20">
+                <AlertCircle size={13} className="flex-shrink-0 mt-0.5 text-amber-400" />
+                <p className="text-xs text-amber-300/90">{speechError}</p>
               </div>
             ) : speechSupported ? (
-              <div className="rounded-xl border p-3 flex items-center gap-2" style={{ borderColor: "hsl(240 12% 20%)", background: "hsl(240 15% 13%)" }}>
+              <div className="glass rounded-xl p-3 flex items-center gap-2">
                 <AlertCircle size={13} style={{ color: "#f59e0b" }} />
-                <p className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>No speech detected — Aura will still analyse your mood from the recording.</p>
+                <p className="text-xs text-muted-foreground">No speech detected — Aura will still analyse your mood from the recording.</p>
               </div>
             ) : null}
 
