@@ -73,6 +73,12 @@ export const useDailyDelight = () =>
 export const useKindnessAct = () =>
   useQuery({ queryKey: ["kindness-act"], queryFn: () => apiFetch<{ act: string }>("/diary/kindness-act"), staleTime: 1000 * 60 * 60 });
 
+export const useKindMessage = () =>
+  useMutation({
+    mutationFn: (data: { name: string; relationship: string; context: string }) =>
+      apiFetch<{ message: string }>("/diary/kind-message", { method: "POST", body: JSON.stringify(data) }),
+  });
+
 export const useEmotionPatterns = () =>
   useQuery({ queryKey: ["emotion-patterns"], queryFn: () => apiFetch<{ patterns: { mood: string; count: number }[]; insight: string }>("/diary/emotion-patterns") });
 

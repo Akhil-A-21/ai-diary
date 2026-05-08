@@ -4,6 +4,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import "./index.css";
 
+// Default to dark mode
+document.documentElement.classList.add("dark");
+
 // Inject user email header into all fetch requests
 const USER_EMAIL = localStorage.getItem("userEmail") || "demo@aivideodiary.app";
 const originalFetch = window.fetch.bind(window);
