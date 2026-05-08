@@ -3,7 +3,7 @@ import multer from "multer";
 import { db, diaryEntries, moodTrends } from "../lib/db";
 import { eq, desc, ilike, and, sql } from "drizzle-orm";
 import { getUserEmail } from "../lib/getUserEmail";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
@@ -102,22 +102,20 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
     const recordingLang: string = ((req.body as any)?.lang as string) || "en";
 
     if (req.file) {
-      const tmpPath = path.join(os.tmpdir(), `video_${Date.now()}.webm`);
       try {
-        fs.writeFileSync(tmpPath, req.file.buffer);
+        // Use toFile() to send the buffer directly — no disk I/O, avoids stream connection errors
+        const audioFile = await toFile(req.file.buffer, "audio.webm", { type: "audio/webm" });
         const transcription = await openai.audio.transcriptions.create({
-          file: fs.createReadStream(tmpPath) as any,
+          file: audioFile,
           model: "whisper-1",
-          language: recordingLang,   // tells Whisper which language to expect
-          response_format: "text",
+          language: recordingLang,
         });
-        transcript = (transcription as unknown as string).trim();
+        transcript = transcription.text.trim();
+        console.log(`Whisper transcribed ${transcript.length} chars in lang=${recordingLang}`);
       } catch (whisperErr: any) {
         console.error("Whisper transcription failed:", whisperErr?.message || whisperErr);
         transcriptionError = true;
         transcript = `Voice diary entry recorded on ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}. Transcription is temporarily unavailable.`;
-      } finally {
-        if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
       }
     }
 
