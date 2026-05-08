@@ -5,7 +5,7 @@ import { getUserEmail } from "../lib/getUserEmail";
 import OpenAI from "openai";
 
 const router = Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: "https://api.groq.com/openai/v1" });
 
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -80,7 +80,7 @@ router.post("/:id/milestones/generate", async (req: Request, res: Response) => {
     if (!goal) return res.status(404).json({ error: "Goal not found" });
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: `Generate 4-6 concrete actionable milestones for this goal: "${goal.title}". Description: ${goal.description || "none"}. Return JSON: { milestones: [{ title: string }] }. Return ONLY valid JSON.` }],
     });
     let result = { milestones: [] as { title: string }[] };

@@ -11,7 +11,7 @@ import os from "os";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: process.env.GROQ_API_KEY, baseURL: "https://api.groq.com/openai/v1" });
 
 router.get("/entries", async (req: Request, res: Response) => {
   try {
@@ -107,7 +107,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
         const audioFile = await toFile(req.file.buffer, "audio.webm", { type: "audio/webm" });
         const transcription = await openai.audio.transcriptions.create({
           file: audioFile,
-          model: "whisper-1",
+          model: "whisper-large-v3",
           language: recordingLang,
         });
         transcript = transcription.text.trim();
@@ -192,7 +192,7 @@ router.post("/entries/:id/analyze", upload.single("video"), async (req: Request,
 
     try {
       const analysisResponse = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: "You are an empathetic emotional intelligence AI fluent in all languages including Malayalam, Hindi, Tamil, Telugu, Kannada, Bengali, Marathi, Urdu, and English. Analyze this diary entry and return JSON with: mood (string: happy/sad/anxious/calm/energized/reflective/grateful), moodScore (1-10), energyLevel (1-10), summary (2-3 warm empathetic sentences written in the EXACT SAME language as the diary entry — if it is Malayalam write in Malayalam, if Hindi write in Hindi, etc.), triggers (array of 1-3 short strings in the same language as the diary entry). Return ONLY valid JSON, no markdown." },
           { role: "user", content: transcript },
@@ -246,7 +246,7 @@ router.post("/entries/:id/detect-goals", async (req: Request, res: Response) => 
     if (!entry?.transcript) return res.json({ goals: [] });
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: "Extract any goals or aspirations mentioned in this diary entry. Return JSON: { goals: [{ title: string, description: string, milestones: string[] }] }. Return ONLY valid JSON." },
         { role: "user", content: entry.transcript },
@@ -327,7 +327,7 @@ router.get("/motivational-quote", async (req: Request, res: Response) => {
     const mood = latest?.mood || "neutral";
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: `Give me a short inspiring motivational quote (max 2 sentences) for someone feeling ${mood}. Return just the quote.` }],
       });
       res.json({ quote: response.choices[0].message.content, mood });
@@ -355,7 +355,7 @@ router.get("/journal-prompt", async (req: Request, res: Response) => {
     const context = recentEntries.map((e) => `Mood: ${e.mood}, ${e.summary}`).join("\n");
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: `Based on these recent diary entries:\n${context || "No recent entries"}\n\nGenerate one thoughtful personalised journaling prompt for today. Just the prompt.` }],
       });
       res.json({ prompt: response.choices[0].message.content });
@@ -375,7 +375,7 @@ router.get("/mood-prediction", async (req: Request, res: Response) => {
     const context = trends.map((t) => `${t.date}: ${t.mood} (${t.moodScore})`).join("\n");
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: `Based on these mood trends:\n${context}\n\nPredict tomorrow's likely mood in JSON: { mood: string, score: number, reason: string }. Return ONLY valid JSON.` }],
       });
       let prediction = { mood: "neutral", score: 5, reason: "Based on your recent patterns." };
@@ -408,7 +408,7 @@ router.get("/affirmation", async (req: Request, res: Response) => {
     const mood = latest?.mood || "calm";
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: `Create a short personalised daily affirmation (under 15 words) for someone feeling ${mood}. Just the affirmation.` }],
       });
       res.json({ affirmation: response.choices[0].message.content });
@@ -442,7 +442,7 @@ router.get("/weekly-reflection", async (req: Request, res: Response) => {
     if (summaries) {
       try {
         const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: `Write a warm empathetic weekly reflection (2-3 sentences) based on: ${summaries}` }],
         });
         narrative = response.choices[0].message.content || narrative;
@@ -466,7 +466,7 @@ router.get("/daily-delight", async (req: Request, res: Response) => {
   try {
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: "Generate a daily delight in JSON: { funFact: string, challenge: string, emoji: string }. Return ONLY valid JSON." }],
       });
       let delight = FALLBACK_DELIGHTS[0];
@@ -496,7 +496,7 @@ router.get("/kindness-act", async (req: Request, res: Response) => {
     const mood = latest?.mood || "neutral";
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: `Suggest a specific small concrete act of kindness for someone feeling ${mood} today. One sentence, action-oriented.` }],
       });
       res.json({ act: response.choices[0].message.content });
@@ -512,7 +512,7 @@ router.post("/kind-message", async (req: Request, res: Response) => {
   try {
     const { name, relationship, context } = req.body;
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: `Write a warm personalised message to ${name} (${relationship}). Context: ${context}. Keep it genuine and heartfelt, 2-3 sentences.` }],
     });
     res.json({ message: response.choices[0].message.content });
@@ -532,7 +532,7 @@ router.get("/emotion-patterns", async (req: Request, res: Response) => {
     if (entries.length > 5) {
       try {
         const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: `Analyse these emotion patterns: ${JSON.stringify(patterns)} and give a 1-sentence insight.` }],
         });
         insight = response.choices[0].message.content || insight;
