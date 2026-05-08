@@ -362,7 +362,7 @@ export default function Record() {
 
         {/* Audio-only visualiser */}
         {isLive && audioOnly && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
             <div className="flex items-end gap-1 h-16">
               {[...Array(9)].map((_, i) => (
                 <motion.div key={i}
@@ -376,6 +376,17 @@ export default function Record() {
             <p className="text-sm font-medium" style={{ color: "hsl(240 8% 65%)" }}>
               {stage === "recording" ? "Recording audio…" : "Audio mode — camera unavailable"}
             </p>
+            {stage === "camera" && (
+              <a
+                href={window.location.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs px-3 py-1.5 rounded-lg border no-underline"
+                style={{ borderColor: "hsl(240 12% 28%)", color: "hsl(var(--primary))", background: "rgba(0,0,0,0.4)" }}
+              >
+                Open in new tab for video recording ↗
+              </a>
+            )}
           </div>
         )}
 
