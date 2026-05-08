@@ -1,5 +1,5 @@
 import { Route, Switch, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Record from "./pages/Record";
@@ -17,6 +17,7 @@ import Login from "./pages/Login";
 import SearchPage from "./pages/Search";
 import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./context/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 function ProtectedApp() {
   const { user, isLoading } = useAuth();
@@ -65,6 +66,8 @@ function ProtectedApp() {
 export default function App() {
   const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const prevEmailRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && user && location === "/login") {
@@ -72,12 +75,24 @@ export default function App() {
     }
   }, [user, isLoading, location, setLocation]);
 
+  // Clear all cached query data whenever the logged-in user changes
+  // so a re-login always fetches fresh data for the correct account.
+  useEffect(() => {
+    if (isLoading) return;
+    const currentEmail = user?.email ?? null;
+    if (prevEmailRef.current !== currentEmail) {
+      prevEmailRef.current = currentEmail;
+      queryClient.clear();
+    }
+  }, [user?.email, isLoading, queryClient]);
+
   return (
     <>
       <Switch>
         <Route path="/login" component={Login} />
         <Route>
-          <ProtectedApp />
+          {/* key forces a full remount — and therefore a fresh data fetch — when the user account changes */}
+          <ProtectedApp key={user?.email ?? "guest"} />
         </Route>
       </Switch>
       <Toaster />
