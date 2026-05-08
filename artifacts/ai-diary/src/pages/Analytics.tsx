@@ -28,13 +28,10 @@ const MOOD_EMOJIS: Record<string, string> = {
 
 function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: string; onClose: () => void }) {
   const [, setLocation] = useLocation();
-  const { data, isLoading } = useEmotionReasons(mood);
+  const { data, isLoading, isError, refetch } = useEmotionReasons(mood);
 
   const handleReasonClick = (reason: string) => {
-    const params = new URLSearchParams({
-      mood,
-      reason,
-    });
+    const params = new URLSearchParams({ mood, reason });
     setLocation(`/chat?${params.toString()}`);
   };
 
@@ -64,7 +61,20 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
             <Loader2 size={14} className="animate-spin" style={{ color }} />
             <span className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>Analysing your entries…</span>
           </div>
-        ) : data?.reasons.length === 0 ? (
+        ) : isError ? (
+          <div className="flex items-center justify-between py-2">
+            <p className="text-xs" style={{ color: "hsl(0 80% 65%)" }}>
+              Couldn't load reasons — tap to retry
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="text-xs px-2 py-1 rounded-md border transition-colors"
+              style={{ borderColor: color + "40", color }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : !data || data.reasons.length === 0 ? (
           <p className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>
             No diary entries with this mood yet.
           </p>
@@ -73,7 +83,7 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
             <p className="text-xs mb-3" style={{ color: "hsl(240 8% 55%)" }}>
               Tap a reason to talk to Aura about it
             </p>
-            {data?.reasons.map((reason, i) => (
+            {data.reasons.map((reason, i) => (
               <motion.button
                 key={i}
                 initial={{ opacity: 0, x: -8 }}
