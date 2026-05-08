@@ -13,11 +13,28 @@ function appUrl() {
     : "https://your-app.replit.app";
 }
 
+async function sendEmail(payload: { to: string; subject: string; html: string }) {
+  const { data, error } = await getClient().emails.send({
+    from: FROM,
+    to: payload.to,
+    subject: payload.subject,
+    html: payload.html,
+  });
+
+  if (error) {
+    const msg = typeof error === "object" && "message" in error
+      ? (error as { message: string }).message
+      : JSON.stringify(error);
+    throw new Error(`Resend error: ${msg}`);
+  }
+
+  return data;
+}
+
 export async function sendDailyReminderEmail(toEmail: string, reminderTime: string) {
   if (!process.env.RESEND_API_KEY) return;
   try {
-    await getClient().emails.send({
-      from: FROM,
+    const data = await sendEmail({
       to: toEmail,
       subject: "📔 Time to reflect — your AI Diary is waiting",
       html: `
@@ -36,19 +53,18 @@ export async function sendDailyReminderEmail(toEmail: string, reminderTime: stri
                 "The habit of journaling is one of the most powerful tools for self-growth and clarity."
               </p>
             </div>
-            <a href="${appUrl()}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;">
+            <a href="${appUrl()}/record" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:600;">
               Open AI Diary →
             </a>
           </div>
           <div style="padding:16px 28px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
             <p style="margin:0;color:rgba(255,255,255,0.3);font-size:11px;">
-              You're receiving this because you enabled daily reminders in AI Diary settings.<br/>
-              Log in to Settings → Email Notifications to change or disable.
+              You're receiving this because you enabled daily reminders in AI Diary settings.
             </p>
           </div>
         </div>`,
     });
-    console.log(`[email] Daily reminder sent → ${toEmail}`);
+    console.log(`[email] Daily reminder sent → ${toEmail} (id: ${data?.id})`);
   } catch (err) {
     console.error("[email] Daily reminder failed:", err);
   }
@@ -57,8 +73,7 @@ export async function sendDailyReminderEmail(toEmail: string, reminderTime: stri
 export async function sendInactivityEmail(toEmail: string, daysMissed: number) {
   if (!process.env.RESEND_API_KEY) return;
   try {
-    await getClient().emails.send({
-      from: FROM,
+    const data = await sendEmail({
       to: toEmail,
       subject: `💜 We miss you — ${daysMissed} days away from your diary`,
       html: `
@@ -70,7 +85,7 @@ export async function sendInactivityEmail(toEmail: string, daysMissed: number) {
           </div>
           <div style="padding:28px;">
             <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.6;margin:0 0 20px;">
-              Hey! It's been ${daysMissed} days since you last checked in with your AI Diary. Life gets busy — that's okay. Your diary is here whenever you're ready to reflect.
+              Hey! It's been ${daysMissed} days since you last checked in with your AI Diary. Your diary is here whenever you're ready to reflect.
             </p>
             <table style="width:100%;border-collapse:separate;border-spacing:8px;margin-bottom:24px;">
               <tr>
@@ -87,21 +102,19 @@ export async function sendInactivityEmail(toEmail: string, daysMissed: number) {
           </div>
           <div style="padding:16px 28px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
             <p style="margin:0;color:rgba(255,255,255,0.3);font-size:11px;">
-              You're receiving this because you enabled inactivity alerts in AI Diary settings.<br/>
-              Log in to Settings → Email Notifications to disable.
+              You're receiving this because you enabled inactivity alerts in AI Diary settings.
             </p>
           </div>
         </div>`,
     });
-    console.log(`[email] Inactivity alert sent → ${toEmail} (${daysMissed}d)`);
+    console.log(`[email] Inactivity alert sent → ${toEmail} (id: ${data?.id})`);
   } catch (err) {
     console.error("[email] Inactivity alert failed:", err);
   }
 }
 
 export async function sendTestEmail(toEmail: string) {
-  await getClient().emails.send({
-    from: FROM,
+  const data = await sendEmail({
     to: toEmail,
     subject: "✅ AI Diary — email notifications are working!",
     html: `
@@ -118,4 +131,6 @@ export async function sendTestEmail(toEmail: string) {
         </a>
       </div>`,
   });
+  console.log(`[email] Test email sent → ${toEmail} (id: ${data?.id})`);
+  return data;
 }
