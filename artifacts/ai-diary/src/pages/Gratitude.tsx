@@ -50,7 +50,7 @@ export default function Gratitude() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold text-white">Gratitude Journal</h1>
+          <h1 className="font-display text-4xl font-bold text-foreground">Gratitude Journal</h1>
           <p className="text-sm mt-1 text-muted-foreground">Three things you're grateful for today</p>
         </div>
         {streak > 0 && (
@@ -89,7 +89,7 @@ export default function Gratitude() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-foreground"
                   style={{ background: "hsl(var(--accent))" }}
                 >
                   {num}
@@ -122,7 +122,7 @@ export default function Gratitude() {
           whileTap={{ scale: 0.97 }}
           onClick={handleSave}
           disabled={saveGratitude.isPending}
-          className="w-full py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-xl text-foreground font-medium flex items-center justify-center gap-2"
           style={{ background: "hsl(var(--accent))" }}
           data-testid="button-save-gratitude"
         >

@@ -70,7 +70,7 @@ function SectionCard({ title, icon, children }: {
     <div className="glass rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-4">
         <span style={{ color: "hsl(var(--primary))" }}>{icon}</span>
-        <h2 className="font-semibold text-sm text-white">{title}</h2>
+        <h2 className="font-semibold text-sm text-foreground">{title}</h2>
       </div>
       {children}
     </div>
@@ -276,7 +276,7 @@ export default function Settings() {
   return (
     <div className="max-w-xl mx-auto space-y-6 pb-8">
       <div>
-        <h1 className="font-display text-4xl font-bold text-white">Settings</h1>
+        <h1 className="font-display text-4xl font-bold text-foreground">Settings</h1>
         <p className="text-sm mt-1 text-muted-foreground">Personalise your AI Diary experience</p>
       </div>
 
@@ -285,7 +285,7 @@ export default function Settings() {
         <div className="flex items-center gap-3">
           {user?.picture && <img src={user.picture} alt="" className="w-10 h-10 rounded-full" />}
           <div>
-            <p className="text-sm font-medium text-white">{user?.name || "—"}</p>
+            <p className="text-sm font-medium text-foreground">{user?.name || "—"}</p>
             <p className="text-xs text-muted-foreground">{user?.email || "—"}</p>
           </div>
         </div>
@@ -295,11 +295,11 @@ export default function Settings() {
       <SectionCard title="Appearance" icon={<Sun size={15} />}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-white">Dark Mode</p>
+            <p className="text-sm font-medium text-foreground">Dark Mode</p>
             <p className="text-xs mt-0.5 text-muted-foreground">Switch between light and dark theme</p>
           </div>
           <motion.button whileTap={{ scale: 0.95 }} onClick={handleThemeToggle}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium text-foreground"
             style={{ borderColor: "hsl(var(--border))" }}>
             {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
             {theme === "light" ? "Dark" : "Light"}
@@ -323,7 +323,7 @@ export default function Settings() {
             {/* Status + toggle row */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Push Notifications</p>
+                <p className="text-sm font-medium text-foreground">Push Notifications</p>
                 <p className="text-xs mt-0.5 text-muted-foreground">
                   {pushState === "denied"
                     ? "Blocked by browser — allow in site settings"
@@ -359,7 +359,7 @@ export default function Settings() {
                 >
                   <div className="pt-1 flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-white">Test Notification</p>
+                      <p className="text-sm font-medium text-foreground">Test Notification</p>
                       <p className="text-xs mt-0.5 text-muted-foreground">Send one right now to check it works</p>
                     </div>
                     <ActionButton
@@ -402,8 +402,8 @@ export default function Settings() {
               style={{ background: "hsl(var(--primary) / 0.08)", border: "1px solid hsl(var(--primary) / 0.2)" }}>
               <Mail size={14} style={{ color: "hsl(var(--primary))" }} className="flex-shrink-0" />
               <div className="min-w-0">
-                <p className="text-xs font-medium text-white/70">Emails sent to:</p>
-                <p className="text-sm font-semibold text-white truncate">{emailToNotify}</p>
+                <p className="text-xs font-medium text-foreground/70">Emails sent to:</p>
+                <p className="text-sm font-semibold text-foreground truncate">{emailToNotify}</p>
               </div>
             </div>
 
@@ -411,7 +411,7 @@ export default function Settings() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-white">Daily Diary Reminder</p>
+                  <p className="text-sm font-medium text-foreground">Daily Diary Reminder</p>
                   <p className="text-xs mt-0.5 text-muted-foreground">Email + push at your chosen time each day</p>
                 </div>
                 <Toggle
@@ -432,7 +432,7 @@ export default function Settings() {
                         type="time"
                         value={prefs.reminderTime || "20:00"}
                         onChange={(e) => handleUpdatePrefs({ reminderTime: e.target.value })}
-                        className="px-3 py-1.5 rounded-lg border text-sm outline-none text-white"
+                        className="px-3 py-1.5 rounded-lg border text-sm outline-none text-foreground"
                         style={{ background: "hsl(var(--input))", borderColor: "hsl(var(--border))" }}
                         data-testid="input-reminder-time"
                       />
@@ -450,7 +450,7 @@ export default function Settings() {
             {/* Inactivity alert */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">3-Day Inactivity Alert</p>
+                <p className="text-sm font-medium text-foreground">3-Day Inactivity Alert</p>
                 <p className="text-xs mt-0.5 text-muted-foreground">Email + push if you haven't logged in for 3 days</p>
               </div>
               <Toggle
@@ -465,7 +465,7 @@ export default function Settings() {
             {/* Test email */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-white">Test Email</p>
+                <p className="text-sm font-medium text-foreground">Test Email</p>
                 <p className="text-xs mt-0.5 text-muted-foreground">Verify your email reminders are working</p>
               </div>
               <ActionButton
@@ -505,7 +505,7 @@ export default function Settings() {
               >
                 <span className="text-base flex-shrink-0">{item.icon}</span>
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-white">{item.label}</p>
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
                   <p className="text-xs text-muted-foreground leading-tight mt-0.5">{item.sub}</p>
                 </div>
               </div>
@@ -515,7 +515,7 @@ export default function Settings() {
           {/* Stats & download button */}
           <div className="flex items-center justify-between pt-1">
             <div>
-              <p className="text-sm font-medium text-white">Download PDF Report</p>
+              <p className="text-sm font-medium text-foreground">Download PDF Report</p>
               <p className="text-xs mt-0.5 text-muted-foreground">
                 {allEntries.length > 0
                   ? `${allEntries.length} entr${allEntries.length === 1 ? "y" : "ies"} ready to export`

@@ -61,11 +61,11 @@ export function SosPanel({ open, onClose }: Props) {
                       <HandHeart className="w-5 h-5 text-rose-400" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-white">Safe Space</h2>
+                      <h2 className="text-lg font-bold text-foreground">Safe Space</h2>
                       <p className="text-xs text-muted-foreground">You are not alone. Help is here.</p>
                     </div>
                   </div>
-                  <button onClick={onClose} className="p-2 rounded-xl text-muted-foreground hover:text-white hover:bg-white/10 transition-colors">
+                  <button onClick={onClose} className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10 transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -73,7 +73,7 @@ export function SosPanel({ open, onClose }: Props) {
 
               <div className="px-6 py-5 space-y-5">
                 <div className="rounded-2xl p-4 border border-rose-500/20 bg-rose-500/5">
-                  <p className="text-white/90 text-sm leading-relaxed">
+                  <p className="text-foreground/90 text-sm leading-relaxed">
                     Whatever you're going through right now, it's okay to feel this way. You don't have to handle it alone.
                     Take a breath — this moment will pass. 💙
                   </p>
@@ -85,7 +85,7 @@ export function SosPanel({ open, onClose }: Props) {
                     className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors text-center"
                   >
                     <Wind className="w-6 h-6 text-cyan-400" />
-                    <span className="text-xs font-medium text-white">Breathing</span>
+                    <span className="text-xs font-medium text-foreground">Breathing</span>
                     <span className="text-[10px] text-muted-foreground">4-7-8 technique</span>
                   </button>
                   <button
@@ -93,7 +93,7 @@ export function SosPanel({ open, onClose }: Props) {
                     className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 transition-colors text-center"
                   >
                     <span className="text-2xl">🌿</span>
-                    <span className="text-xs font-medium text-white">Grounding</span>
+                    <span className="text-xs font-medium text-foreground">Grounding</span>
                     <span className="text-[10px] text-muted-foreground">5-4-3-2-1 method</span>
                   </button>
                 </div>
@@ -107,8 +107,8 @@ export function SosPanel({ open, onClose }: Props) {
                       className="rounded-2xl p-4 border border-violet-500/20 bg-violet-500/5 space-y-3"
                     >
                       <div className="flex items-center justify-between">
-                        <p className="text-white font-semibold text-sm">Grounding Exercise</p>
-                        <button onClick={resetGrounding} className="text-muted-foreground hover:text-white text-xs">Reset</button>
+                        <p className="text-foreground font-semibold text-sm">Grounding Exercise</p>
+                        <button onClick={resetGrounding} className="text-muted-foreground hover:text-foreground text-xs">Reset</button>
                       </div>
                       {GROUNDING_STEPS.map((step, i) => (
                         <div
@@ -118,7 +118,7 @@ export function SosPanel({ open, onClose }: Props) {
                           onClick={() => setGroundingStep(Math.min(GROUNDING_STEPS.length - 1, i + 1))}
                         >
                           <span className="font-bold mr-2" style={{ color: step.color }}>{step.count} {step.sense}</span>
-                          <span className="text-white/70">{step.prompt}</span>
+                          <span className="text-foreground/70">{step.prompt}</span>
                         </div>
                       ))}
                       {groundingStep >= GROUNDING_STEPS.length && (
@@ -131,7 +131,7 @@ export function SosPanel({ open, onClose }: Props) {
                 <div>
                   <button
                     onClick={() => setShowHelp((v) => !v)}
-                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-sm text-white"
+                    className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-sm text-foreground"
                   >
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-blue-400" />
@@ -152,7 +152,7 @@ export function SosPanel({ open, onClose }: Props) {
                             <div className="flex items-center gap-2">
                               <span>{line.flag}</span>
                               <div>
-                                <p className="text-white text-xs font-medium">{line.name}</p>
+                                <p className="text-foreground text-xs font-medium">{line.name}</p>
                                 <p className="text-muted-foreground text-[10px]">{line.hours}</p>
                               </div>
                             </div>
@@ -170,12 +170,12 @@ export function SosPanel({ open, onClose }: Props) {
                 </div>
 
                 <div className="rounded-2xl p-4 bg-green-500/5 border border-green-500/20">
-                  <p className="text-white/70 text-xs leading-relaxed text-center">
+                  <p className="text-foreground/70 text-xs leading-relaxed text-center">
                     🌱 TELE MANAS — India's 24/7 free mental health helpline
                   </p>
                   <a
                     href="tel:14416"
-                    className="flex items-center justify-center gap-2 w-full mt-3 py-3 px-6 rounded-xl font-bold text-white text-base transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 w-full mt-3 py-3 px-6 rounded-xl font-bold text-foreground text-base transition-all active:scale-95"
                     style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
                   >
                     <Phone className="w-5 h-5" />

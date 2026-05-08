@@ -70,7 +70,7 @@ export default function Home() {
       <div className="flex items-start justify-between pt-1">
         <div>
           <p className="text-xs text-muted-foreground mb-1">{dateStr}</p>
-          <h1 className="font-display text-4xl font-bold text-white">
+          <h1 className="font-display text-4xl font-bold text-foreground">
             {greeting} ✨
           </h1>
         </div>
@@ -78,12 +78,12 @@ export default function Home() {
           <GlassCard className="flex items-center gap-1.5 px-3 py-2">
             <Flame className="w-4 h-4 text-orange-400 flex-shrink-0" />
             <div className="text-center">
-              <p className="text-sm font-bold leading-none text-white">{streak?.streak ?? 0}</p>
+              <p className="text-sm font-bold leading-none text-foreground">{streak?.streak ?? 0}</p>
               <p className="text-[10px] leading-none mt-0.5 text-muted-foreground">streak</p>
             </div>
           </GlassCard>
           <GlassCard className="px-3 py-2 text-center">
-            <p className="text-sm font-bold leading-none text-white">{streak?.totalEntries ?? 0}</p>
+            <p className="text-sm font-bold leading-none text-foreground">{streak?.totalEntries ?? 0}</p>
             <p className="text-[10px] leading-none mt-0.5 text-muted-foreground">entries</p>
           </GlassCard>
         </div>
@@ -95,7 +95,7 @@ export default function Home() {
       >
         <GlassCard className="flex items-center gap-3 px-5 py-3.5">
           <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: "hsl(var(--primary))" }} />
-          <p className="text-sm italic text-white/80">
+          <p className="text-sm italic text-foreground/80">
             "{affirmation?.affirmation || "You are doing better than you think."}"
           </p>
         </GlassCard>
@@ -108,12 +108,12 @@ export default function Home() {
         <GlassCard className="relative overflow-hidden px-7 pt-6 pb-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-8">
-              <p className="font-display text-2xl font-bold leading-snug text-white">
+              <p className="font-display text-2xl font-bold leading-snug text-foreground">
                 "{quote?.quote || "Every day is a new beginning. Take a deep breath and start again."}"
               </p>
               <p className="text-sm mt-3 mb-5" style={{ color: "hsl(var(--primary))" }}>— Daily Wisdom</p>
             </div>
-            <span className="text-[80px] font-bold leading-none select-none flex-shrink-0 opacity-10 text-white" style={{ lineHeight: 0.8, marginTop: "4px" }}>"</span>
+            <span className="text-[80px] font-bold leading-none select-none flex-shrink-0 opacity-10 text-foreground" style={{ lineHeight: 0.8, marginTop: "4px" }}>"</span>
           </div>
           <div className="h-0.5 w-full" style={{ background: "linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)))" }} />
         </GlassCard>
@@ -128,9 +128,9 @@ export default function Home() {
                 className="w-14 h-14 rounded-full flex items-center justify-center mb-3"
                 style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}
               >
-                <Video className="w-6 h-6 text-white" />
+                <Video className="w-6 h-6 text-foreground" />
               </div>
-              <p className="font-semibold text-sm text-white">Record Entry</p>
+              <p className="font-semibold text-sm text-foreground">Record Entry</p>
               <p className="text-xs mt-1 text-muted-foreground">Capture how you feel right now</p>
             </GlassCard>
           </Link>
@@ -141,7 +141,7 @@ export default function Home() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" style={{ color: "hsl(var(--primary))" }} />
-                <span className="text-xs font-semibold text-white">Weekly Mood</span>
+                <span className="text-xs font-semibold text-foreground">Weekly Mood</span>
               </div>
               <Link href="/analytics">
                 <span className="text-xs flex items-center gap-0.5 cursor-pointer" style={{ color: "hsl(var(--primary))" }}>
@@ -154,7 +154,7 @@ export default function Home() {
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-2xl">{getMoodEmoji(weekly.dominantMood)}</span>
                   <div>
-                    <p className="text-sm font-semibold capitalize text-white">{weekly.dominantMood}</p>
+                    <p className="text-sm font-semibold capitalize text-foreground">{weekly.dominantMood}</p>
                     <p className="text-xs text-muted-foreground">{weekly.avgScore}/10 avg · {weekly.entryCount} entries</p>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export default function Home() {
               <span className="text-lg">{delight.emoji || "✨"}</span>
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Daily Delight</span>
             </div>
-            <p className="text-sm text-white/80 leading-relaxed mb-3">{delight.funFact}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed mb-3">{delight.funFact}</p>
             <div className="rounded-xl px-4 py-2.5 border text-xs font-medium" style={{ background: "hsl(var(--primary) / 0.1)", borderColor: "hsl(var(--primary) / 0.2)", color: "hsl(var(--primary))" }}>
               30-sec challenge: {delight.challenge}
             </div>
@@ -196,12 +196,12 @@ export default function Home() {
               <Brain className="w-5 h-5" style={{ color: "hsl(var(--primary))" }} />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm text-white">Tomorrow's Mood Forecast</p>
+              <p className="font-semibold text-sm text-foreground">Tomorrow's Mood Forecast</p>
               {prediction ? (
                 <div className="mt-2 flex items-center gap-3">
                   <span className="text-2xl">{getMoodEmoji(prediction.mood)}</span>
                   <div>
-                    <p className="text-sm font-semibold capitalize text-white">{prediction.mood} · {prediction.score}/10</p>
+                    <p className="text-sm font-semibold capitalize text-foreground">{prediction.mood} · {prediction.score}/10</p>
                     <p className="text-xs mt-0.5 text-muted-foreground">{prediction.reason}</p>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function Home() {
               </div>
 
               {/* Goal title */}
-              <p className="font-semibold text-white mb-3 leading-snug">{latestGoal.title}</p>
+              <p className="font-semibold text-foreground mb-3 leading-snug">{latestGoal.title}</p>
 
               {latestGoal.milestones && latestGoal.milestones.length > 0 ? (() => {
                 const total = latestGoal.milestones.length;
@@ -250,7 +250,7 @@ export default function Home() {
                         <span className="text-muted-foreground">{done}/{total} milestones</span>
                         <span className="font-semibold" style={{ color: "hsl(var(--primary))" }}>{pct}%</span>
                       </div>
-                      <div className="h-2 rounded-full" style={{ background: "hsl(240 12% 18%)" }}>
+                      <div className="h-2 rounded-full bg-muted">
                         <motion.div
                           className="h-full rounded-full"
                           initial={{ width: 0 }}
@@ -271,7 +271,7 @@ export default function Home() {
                             <Circle className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
                           )}
                           <span
-                            className={`text-xs leading-snug ${m.completed ? "line-through text-muted-foreground" : "text-white/80"}`}
+                            className={`text-xs leading-snug ${m.completed ? "line-through text-muted-foreground" : "text-foreground/80"}`}
                           >
                             {m.title}
                           </span>
@@ -315,13 +315,13 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Heart className="w-4 h-4 text-pink-400" />
-              <span className="font-semibold text-sm text-white">Kindness Corner</span>
+              <span className="font-semibold text-sm text-foreground">Kindness Corner</span>
             </div>
             <span className="text-xs text-muted-foreground">makes you & them happier</span>
           </div>
 
           {kindnessAct && (
-            <div className="mb-4 px-4 py-3 rounded-xl text-sm text-white/70 border border-white/5" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="mb-4 px-4 py-3 rounded-xl text-sm text-foreground/70 border border-border" style={{ background: "hsl(var(--muted) / 0.5)" }}>
               💡 Today's act: {kindnessAct.act}
             </div>
           )}
@@ -339,16 +339,14 @@ export default function Home() {
                     placeholder="Their name"
                     value={kindForm.name}
                     onChange={(e) => setKindForm({ ...kindForm, name: e.target.value })}
-                    className="px-3 py-2.5 rounded-xl border text-sm outline-none w-full text-white placeholder:text-muted-foreground"
-                    style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
+                    className="px-3 py-2.5 rounded-xl border border-border text-sm outline-none w-full text-foreground placeholder:text-muted-foreground bg-input"
                   />
                   <input
                     type="text"
                     placeholder="Relationship (friend, mum…)"
                     value={kindForm.relationship}
                     onChange={(e) => setKindForm({ ...kindForm, relationship: e.target.value })}
-                    className="px-3 py-2.5 rounded-xl border text-sm outline-none w-full text-white placeholder:text-muted-foreground"
-                    style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
+                    className="px-3 py-2.5 rounded-xl border border-border text-sm outline-none w-full text-foreground placeholder:text-muted-foreground bg-input"
                   />
                 </div>
                 <textarea
@@ -356,8 +354,7 @@ export default function Home() {
                   value={kindForm.context}
                   onChange={(e) => setKindForm({ ...kindForm, context: e.target.value })}
                   rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl border text-sm outline-none resize-none text-white placeholder:text-muted-foreground"
-                  style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
+                  className="w-full px-3 py-2.5 rounded-xl border border-border text-sm outline-none resize-none text-foreground placeholder:text-muted-foreground bg-input"
                 />
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -374,8 +371,7 @@ export default function Home() {
             ) : (
               <motion.div key="result" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                 <div
-                  className="p-4 rounded-xl border text-sm leading-relaxed text-white/85"
-                  style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}
+                  className="p-4 rounded-xl border border-border text-sm leading-relaxed text-foreground/85 bg-muted/30"
                 >
                   {generatedMessage}
                 </div>
@@ -391,8 +387,7 @@ export default function Home() {
                   </motion.button>
                   <button
                     onClick={() => { setGeneratedMessage(""); setKindForm({ name: "", relationship: "", context: "" }); }}
-                    className="px-3 py-2 rounded-xl text-xs border text-muted-foreground"
-                    style={{ borderColor: "rgba(255,255,255,0.1)" }}
+                    className="px-3 py-2 rounded-xl text-xs border border-border text-muted-foreground"
                   >
                     Try again
                   </button>
@@ -411,10 +406,10 @@ export default function Home() {
               className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
               style={{ background: "linear-gradient(135deg, #0d9488, #14b8a6)" }}
             >
-              <Wind className="w-5 h-5 text-white" />
+              <Wind className="w-5 h-5 text-foreground" />
             </div>
             <div>
-              <p className="font-semibold text-sm text-white">Breathing Exercise</p>
+              <p className="font-semibold text-sm text-foreground">Breathing Exercise</p>
               <p className="text-xs mt-0.5 text-muted-foreground">4-7-8 technique — calms stress in under 2 minutes</p>
             </div>
           </div>
@@ -422,7 +417,7 @@ export default function Home() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setBreathingOpen(true)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-medium flex-shrink-0"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-foreground text-sm font-medium flex-shrink-0"
             style={{ background: "hsl(var(--primary))" }}
           >
             Start
@@ -435,7 +430,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4" style={{ color: "hsl(var(--primary))" }} />
-            <span className="font-semibold text-sm text-white">Recent Reflections</span>
+            <span className="font-semibold text-sm text-foreground">Recent Reflections</span>
           </div>
           <Link href="/timeline">
             <span className="text-xs cursor-pointer" style={{ color: "hsl(var(--primary))" }}>View all</span>
@@ -463,7 +458,7 @@ export default function Home() {
                         {new Date((entry.entryDate as string) + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold leading-snug line-clamp-2 text-white">{entry.title}</p>
+                    <p className="text-xs font-semibold leading-snug line-clamp-2 text-foreground">{entry.title}</p>
                     <p className="text-xs mt-1 line-clamp-2 text-muted-foreground">
                       {(entry as any).summary || "No summary available."}
                     </p>

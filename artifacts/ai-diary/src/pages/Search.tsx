@@ -58,7 +58,7 @@ function WordCloud({ entries }: { entries: DiaryEntry[] }) {
     <div className="glass p-6 rounded-3xl">
       <div className="flex items-center gap-2 mb-4">
         <Hash className="w-5 h-5" style={{ color: "hsl(var(--accent))" }} />
-        <h3 className="font-semibold text-white">Word Cloud</h3>
+        <h3 className="font-semibold text-foreground">Word Cloud</h3>
         <span className="text-xs text-muted-foreground">from all transcripts</span>
       </div>
       <div className="flex flex-wrap gap-2 justify-center leading-loose">
@@ -136,7 +136,7 @@ export default function SearchPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-12">
       <header>
-        <h1 className="font-display text-4xl font-bold text-white">Search</h1>
+        <h1 className="font-display text-4xl font-bold text-foreground">Search</h1>
         <p className="text-muted-foreground mt-1">Find anything across your diary entries.</p>
       </header>
 
@@ -148,14 +148,13 @@ export default function SearchPage() {
           value={query}
           onChange={(e) => { setQuery(e.target.value); setActiveTag(null); }}
           placeholder="Search titles, transcripts, summaries, tags..."
-          className="w-full border rounded-2xl pl-12 pr-12 py-4 text-white placeholder:text-muted-foreground focus:outline-none text-base transition-colors"
-          style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
+          className="w-full border border-border rounded-2xl pl-12 pr-12 py-4 text-foreground placeholder:text-muted-foreground focus:outline-none text-base transition-colors bg-input"
           autoFocus
         />
         {query && (
           <button
             onClick={() => { setQuery(""); setResults([]); setSearched(false); setActiveTag(null); }}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/30 hover:text-foreground transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -170,8 +169,8 @@ export default function SearchPage() {
               onClick={() => handleTagClick(tag)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all"
               style={{
-                background: activeTag === tag ? "hsl(var(--primary))" : "rgba(255,255,255,0.05)",
-                color: activeTag === tag ? "white" : "hsl(var(--muted-foreground))",
+                background: activeTag === tag ? "hsl(var(--primary))" : "hsl(var(--muted))",
+                color: activeTag === tag ? "hsl(var(--primary-foreground))" : "hsl(var(--muted-foreground))",
               }}
             >
               <Tag className="w-3 h-3" />
@@ -210,14 +209,14 @@ export default function SearchPage() {
               <motion.div key={entry.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <Link href={`/entry/${entry.id}`}>
                   <div
-                    className="glass p-5 rounded-2xl cursor-pointer transition-all group border border-transparent hover:border-white/10"
+                    className="glass p-5 rounded-2xl cursor-pointer transition-all group border border-transparent hover:border-border"
                     style={{ background: "hsl(var(--card) / 0.5)" }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-2xl flex-shrink-0">{info.emoji}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
-                          <h3 className="font-semibold text-white group-hover:text-primary transition-colors">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                             {highlight(entry.title, query)}
                           </h3>
                           <span className="text-xs text-muted-foreground flex-shrink-0">
@@ -226,7 +225,7 @@ export default function SearchPage() {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 capitalize">{entry.mood}</p>
                         {truncated && (
-                          <p className="text-sm mt-2 leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                          <p className="text-sm mt-2 leading-relaxed text-foreground/70">
                             {highlight(truncated, query)}
                           </p>
                         )}

@@ -51,15 +51,15 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color }}>
             Why you feel {mood}
           </p>
-          <button onClick={onClose} className="p-0.5 rounded-md hover:bg-white/10 transition-colors">
-            <X size={13} style={{ color: "hsl(240 8% 50%)" }} />
+          <button onClick={onClose} className="p-0.5 rounded-md hover:bg-muted transition-colors">
+            <X size={13} style={{ color: "hsl(var(--muted-foreground))" }} />
           </button>
         </div>
 
         {isLoading ? (
           <div className="flex items-center gap-2 py-3">
             <Loader2 size={14} className="animate-spin" style={{ color }} />
-            <span className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>Analysing your entries…</span>
+            <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>Analysing your entries…</span>
           </div>
         ) : isError ? (
           <div className="flex items-center justify-between py-2">
@@ -75,12 +75,12 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
             </button>
           </div>
         ) : !data || data.reasons.length === 0 ? (
-          <p className="text-xs" style={{ color: "hsl(240 8% 55%)" }}>
+          <p className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
             No diary entries with this mood yet.
           </p>
         ) : (
           <div className="space-y-2">
-            <p className="text-xs mb-3" style={{ color: "hsl(240 8% 55%)" }}>
+            <p className="text-xs mb-3" style={{ color: "hsl(var(--muted-foreground))" }}>
               Tap a reason to talk to AI Diary about it
             </p>
             {data.reasons.map((reason, i) => (
@@ -92,9 +92,9 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
                 onClick={() => handleReasonClick(reason)}
                 className="w-full text-left px-3 py-2.5 rounded-lg border text-sm flex items-start gap-2.5 group transition-all"
                 style={{
-                  background: "hsl(240 15% 10%)",
-                  borderColor: "hsl(240 12% 20%)",
-                  color: "hsl(240 10% 80%)",
+                  background: "hsl(var(--muted))",
+                  borderColor: "hsl(var(--border))",
+                  color: "hsl(var(--foreground))",
                 }}
                 whileHover={{ scale: 1.01, borderColor: color }}
                 whileTap={{ scale: 0.99 }}
@@ -102,7 +102,7 @@ function EmotionReasonsPanel({ mood, color, onClose }: { mood: string; color: st
                 <MessageCircle
                   size={13}
                   className="flex-shrink-0 mt-0.5 transition-colors"
-                  style={{ color: "hsl(240 8% 45%)" }}
+                  style={{ color: "hsl(var(--muted-foreground))" }}
                 />
                 <span className="flex-1 leading-snug">{reason}</span>
                 <ChevronRight
@@ -137,7 +137,7 @@ export default function Analytics() {
 
   const tooltipStyle = {
     background: "hsl(var(--card))",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid hsl(var(--border))",
     borderRadius: 12,
     fontSize: 12,
     color: "hsl(var(--foreground))"
@@ -146,7 +146,7 @@ export default function Analytics() {
   return (
     <div className="space-y-6 pb-8">
       <div>
-        <h1 className="font-display text-4xl font-bold text-white">Analytics</h1>
+        <h1 className="font-display text-4xl font-bold text-foreground">Analytics</h1>
         <p className="text-sm mt-1 text-muted-foreground">Understand your emotional landscape</p>
       </div>
 
@@ -161,7 +161,7 @@ export default function Analytics() {
             <div className="flex items-center gap-6">
               <div className="relative w-24 h-24 flex-shrink-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="hsl(var(--muted))" strokeWidth="10" />
                   <circle
                     cx="50" cy="50" r="40" fill="none"
                     stroke="hsl(var(--primary))" strokeWidth="10"
@@ -170,23 +170,23 @@ export default function Analytics() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xl font-bold text-white">{resilience.score}</span>
+                  <span className="text-xl font-bold text-foreground">{resilience.score}</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Average Mood</p>
-                  <p className="font-semibold text-white">{resilience.avgMoodScore}/10</p>
+                  <p className="font-semibold text-foreground">{resilience.avgMoodScore}/10</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Trend</p>
-                  <p className={`font-semibold capitalize ${resilience.trend === "improving" ? "text-green-400" : resilience.trend === "declining" ? "text-red-400" : "text-white"}`}>
+                  <p className={`font-semibold capitalize ${resilience.trend === "improving" ? "text-green-400" : resilience.trend === "declining" ? "text-red-400" : "text-foreground"}`}>
                     {resilience.trend}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Data Points</p>
-                  <p className="font-semibold text-white">{resilience.dataPoints}</p>
+                  <p className="font-semibold text-foreground">{resilience.dataPoints}</p>
                 </div>
               </div>
             </div>
@@ -226,7 +226,7 @@ export default function Analytics() {
               <Brain className="w-4 h-4" style={{ color: "hsl(var(--primary))" }} />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emotion Patterns</span>
             </div>
-            <p className="text-xs mb-4" style={{ color: "hsl(240 8% 45%)" }}>
+            <p className="text-xs mb-4" style={{ color: "hsl(var(--muted-foreground))" }}>
               Tap an emotion to see why you feel that way
             </p>
 
@@ -278,12 +278,12 @@ export default function Analytics() {
                             style={{ background: color, transform: isSelected ? "scale(1.3)" : "scale(1)" }}
                           />
                           <span className="text-base mr-1">{MOOD_EMOJIS[p.mood] || "💭"}</span>
-                          <span className="capitalize font-medium" style={{ color: isSelected ? color : "hsl(240 10% 80%)" }}>
+                          <span className="capitalize font-medium" style={{ color: isSelected ? color : "hsl(var(--foreground))" }}>
                             {p.mood}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-white">{p.count}x</span>
+                          <span className="font-semibold text-foreground">{p.count}x</span>
                           <ChevronDown
                             size={13}
                             style={{
@@ -310,7 +310,7 @@ export default function Analytics() {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t" style={{ borderColor: "hsl(240 12% 18%)" }}>
+            <div className="mt-4 pt-4 border-t border-border">
               <p className="text-sm leading-relaxed text-muted-foreground">{patterns.insight}</p>
             </div>
           </GlassCard>

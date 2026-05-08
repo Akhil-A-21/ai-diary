@@ -67,7 +67,7 @@ export default function EntryDetail() {
 
       {/* Title */}
       <div>
-        <h1 className="font-display text-3xl font-bold leading-snug text-white">{entry.title}</h1>
+        <h1 className="font-display text-3xl font-bold leading-snug text-foreground">{entry.title}</h1>
         <p className="text-sm mt-1 text-muted-foreground">{formatDate(entry.entryDate as string)}</p>
       </div>
 

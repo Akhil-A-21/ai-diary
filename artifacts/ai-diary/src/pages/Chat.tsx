@@ -134,10 +134,10 @@ export default function Chat() {
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: "hsl(var(--primary))" }}
           >
-            <Sparkles size={18} className="text-white" />
+            <Sparkles size={18} className="text-foreground" />
           </div>
           <div className="flex-1">
-            <h1 className="font-display text-2xl font-bold text-white">AI Diary</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">AI Diary</h1>
             <p className="text-xs mt-0.5" style={{ color: "hsl(var(--muted-foreground))" }}>Your emotional support companion</p>
           </div>
 
@@ -156,14 +156,14 @@ export default function Chat() {
                     <button
                       onClick={clearHistory}
                       className="text-xs px-2 py-1 rounded-lg font-medium"
-                      style={{ background: "hsl(0 70% 45%)", color: "white" }}
+                      style={{ background: "hsl(0 70% 45%)", color: "#fff" }}
                     >
                       Yes
                     </button>
                     <button
                       onClick={() => setShowClearConfirm(false)}
                       className="text-xs px-2 py-1 rounded-lg"
-                      style={{ background: "hsl(240 12% 20%)", color: "hsl(var(--muted-foreground))" }}
+                      style={{ background: "hsl(var(--muted))", color: "hsl(var(--muted-foreground))" }}
                     >
                       No
                     </button>
@@ -171,7 +171,7 @@ export default function Chat() {
                 ) : (
                   <button
                     onClick={() => setShowClearConfirm(true)}
-                    className="p-1.5 rounded-lg transition-colors hover:bg-white/10"
+                    className="p-1.5 rounded-lg transition-colors hover:bg-muted"
                     title="Clear chat history"
                     style={{ color: "hsl(var(--muted-foreground))" }}
                   >
@@ -196,7 +196,7 @@ export default function Chat() {
               <span className="font-semibold capitalize" style={{ color: "hsl(var(--primary))" }}>
                 Talking about: {contextBanner.mood}
               </span>
-              <p className="mt-0.5 leading-snug" style={{ color: "hsl(240 8% 65%)" }}>
+              <p className="mt-0.5 leading-snug text-muted-foreground">
                 {contextBanner.reason}
               </p>
             </div>
@@ -215,12 +215,12 @@ export default function Chat() {
             {/* History badge if messages were loaded from DB */}
             {messages.length > 1 && (
               <div className="flex items-center gap-2 justify-center py-1">
-                <div className="h-px flex-1" style={{ background: "hsl(240 12% 20%)" }} />
-                <span className="flex items-center gap-1 text-xs" style={{ color: "hsl(240 8% 40%)" }}>
+                <div className="h-px flex-1 bg-border" />
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock size={10} />
                   Chat history
                 </span>
-                <div className="h-px flex-1" style={{ background: "hsl(240 12% 20%)" }} />
+                <div className="h-px flex-1 bg-border" />
               </div>
             )}
 
@@ -238,14 +238,14 @@ export default function Chat() {
                       className="w-7 h-7 rounded-full flex-shrink-0 mr-2 flex items-center justify-center mt-1"
                       style={{ background: "hsl(var(--primary))" }}
                     >
-                      <Sparkles size={13} className="text-white" />
+                      <Sparkles size={13} className="text-foreground" />
                     </div>
                   )}
                   <div
                     className={`max-w-[80%] px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "" : "glass"}`}
                     style={{
                       background: msg.role === "user" ? "hsl(var(--primary))" : undefined,
-                      color: msg.role === "user" ? "white" : "hsl(var(--foreground))",
+                      color: msg.role === "user" ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))",
                       borderRadius: msg.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
                       whiteSpace: "pre-wrap",
                     }}
@@ -266,7 +266,7 @@ export default function Chat() {
                   className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center"
                   style={{ background: "hsl(var(--primary))" }}
                 >
-                  <Sparkles size={13} className="text-white" />
+                  <Sparkles size={13} className="text-foreground" />
                 </div>
                 <div className="glass rounded-2xl px-4 py-3">
                   <div className="flex gap-1 items-center h-4">
@@ -298,7 +298,7 @@ export default function Chat() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Share what's on your mind..."
-          className="flex-1 px-4 py-3 rounded-2xl text-sm outline-none text-white placeholder:text-muted-foreground glass"
+          className="flex-1 px-4 py-3 rounded-2xl text-sm outline-none text-foreground placeholder:text-muted-foreground glass"
           style={{ color: "hsl(var(--foreground))" }}
           disabled={historyLoading}
         />
@@ -307,7 +307,7 @@ export default function Chat() {
           whileTap={{ scale: 0.95 }}
           onClick={() => sendMessage()}
           disabled={isLoading || !input.trim() || historyLoading}
-          className="w-12 h-12 rounded-2xl flex items-center justify-center text-white flex-shrink-0 disabled:opacity-50"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-foreground flex-shrink-0 disabled:opacity-50"
           style={{ background: "hsl(var(--primary))" }}
         >
           {isLoading ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}

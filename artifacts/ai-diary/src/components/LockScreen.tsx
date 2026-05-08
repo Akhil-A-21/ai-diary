@@ -96,10 +96,10 @@ export default function LockScreen({ onUnlock }: Props) {
             className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
             style={{ background: "hsl(var(--primary))" }}
           >
-            <Sparkles size={30} className="text-white" />
+            <Sparkles size={30} className="text-foreground" />
           </div>
           <div className="text-center">
-            <h1 className="font-display text-2xl font-bold text-white">AI Diary</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">AI Diary</h1>
             {user && (
               <p className="text-xs mt-1" style={{ color: "hsl(240 8% 50%)" }}>
                 {user.email}

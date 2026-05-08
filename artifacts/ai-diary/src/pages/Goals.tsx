@@ -69,7 +69,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
       className="glass rounded-2xl overflow-hidden"
     >
       {/* Progress strip at the top */}
-      <div className="h-1 w-full" style={{ background: "hsl(240 12% 18%)" }}>
+      <div className="h-1 w-full bg-muted">
         <motion.div
           className="h-full rounded-full"
           initial={{ width: 0 }}
@@ -92,10 +92,10 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
                   background: goal.status === "completed" ? color : "transparent",
                 }}
               >
-                {goal.status === "completed" && <CheckCircle2 size={11} className="text-white" />}
+                {goal.status === "completed" && <CheckCircle2 size={11} className="text-foreground" />}
               </button>
               <h3
-                className={`font-semibold text-sm flex-1 ${goal.status === "completed" ? "line-through" : "text-white"}`}
+                className={`font-semibold text-sm flex-1 ${goal.status === "completed" ? "line-through" : "text-foreground"}`}
                 style={{ color: goal.status === "completed" ? "hsl(var(--muted-foreground))" : undefined }}
               >
                 {goal.title}
@@ -128,7 +128,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
             {/* Next milestone preview (collapsed state) */}
             {!expanded && nextMilestone && (
               <div className="ml-7 mt-2 text-xs text-muted-foreground">
-                Next: <span className="text-white/70">{nextMilestone.title}</span>
+                Next: <span className="text-foreground/70">{nextMilestone.title}</span>
               </div>
             )}
           </div>
@@ -143,7 +143,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
             </button>
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-1.5 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground"
             >
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -160,7 +160,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="mt-4 pt-4 border-t ml-7 space-y-1.5" style={{ borderColor: "hsl(240 12% 18%)" }}>
+              <div className="mt-4 pt-4 border-t border-border ml-7 space-y-1.5">
                 {milestonesLoading ? (
                   <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
                     <Loader2 size={13} className="animate-spin" />
@@ -171,7 +171,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
                     <button
                       onClick={() => generateMilestones.mutateAsync(goal.id).then(() => toast({ title: "Milestones generated!" }))}
                       disabled={generateMilestones.isPending}
-                      className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg text-white disabled:opacity-60"
+                      className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg text-foreground disabled:opacity-60"
                       style={{ background: "hsl(var(--primary))" }}
                     >
                       {generateMilestones.isPending
@@ -195,11 +195,11 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
                           {m.completed ? (
                             <CheckCircle2 size={15} style={{ color }} />
                           ) : (
-                            <Circle size={15} className="text-muted-foreground group-hover:text-white/60 transition-colors" />
+                            <Circle size={15} className="text-muted-foreground group-hover:text-foreground/60 transition-colors" />
                           )}
                         </div>
                         <span
-                          className={`text-sm leading-snug transition-colors ${m.completed ? "line-through text-muted-foreground" : "text-white/80 group-hover:text-white"}`}
+                          className={`text-sm leading-snug transition-colors ${m.completed ? "line-through text-muted-foreground" : "text-foreground/80 group-hover:text-foreground"}`}
                         >
                           {m.title}
                         </span>
@@ -211,7 +211,7 @@ function GoalCard({ goal, autoExpand = false }: { goal: Goal; autoExpand?: boole
                       <button
                         onClick={handleRegenerate}
                         disabled={generateMilestones.isPending}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white/70 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground/70 transition-colors disabled:opacity-50"
                       >
                         {generateMilestones.isPending
                           ? <Loader2 size={11} className="animate-spin" />
@@ -257,14 +257,14 @@ export default function Goals() {
     <div className="space-y-6 pb-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold text-white">Goals</h1>
+          <h1 className="font-display text-4xl font-bold text-foreground">Goals</h1>
           <p className="text-sm mt-1 text-muted-foreground">Track your aspirations, step by step</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-sm font-medium"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-foreground text-sm font-medium"
           style={{ background: "hsl(var(--primary))" }}
         >
           <Plus size={15} />
@@ -284,7 +284,7 @@ export default function Goals() {
             <div className="glass rounded-2xl p-5 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles size={14} style={{ color: "hsl(var(--primary))" }} />
-                <p className="text-sm font-semibold text-white">New Goal</p>
+                <p className="text-sm font-semibold text-foreground">New Goal</p>
                 <span className="text-xs text-muted-foreground ml-1">— AI will generate milestones automatically</span>
               </div>
 
@@ -294,7 +294,7 @@ export default function Goals() {
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none text-white"
+                className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none text-foreground"
                 style={{ background: "hsl(var(--input))", borderColor: "hsl(var(--border))" }}
                 autoFocus
               />
@@ -303,7 +303,7 @@ export default function Goals() {
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
-                className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none resize-none text-white"
+                className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none resize-none text-foreground"
                 style={{ background: "hsl(var(--input))", borderColor: "hsl(var(--border))" }}
               />
               <input
@@ -318,7 +318,7 @@ export default function Goals() {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleCreate}
                   disabled={createGoal.isPending || !form.title.trim()}
-                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="flex-1 py-2.5 rounded-xl text-foreground text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-60"
                   style={{ background: "hsl(var(--primary))" }}
                 >
                   {createGoal.isPending ? (
@@ -361,13 +361,13 @@ export default function Goals() {
           >
             <Target size={28} style={{ color: "hsl(var(--primary))" }} />
           </div>
-          <p className="font-semibold text-white">No goals yet</p>
+          <p className="font-semibold text-foreground">No goals yet</p>
           <p className="text-sm mt-1 text-muted-foreground">Create a goal and AI will instantly generate<br/>step-by-step milestones to help you achieve it</p>
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(true)}
-            className="mt-4 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-medium mx-auto"
+            className="mt-4 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-foreground text-sm font-medium mx-auto"
             style={{ background: "hsl(var(--primary))" }}
           >
             <Plus size={15} />

@@ -71,7 +71,7 @@ export function BreathingModal({ open, onClose }: Props) {
           >
             <button
               onClick={onClose}
-              className="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-colors z-10"
+              className="absolute -top-2 -right-2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-foreground/60 hover:text-foreground transition-colors z-10"
             >
               <X className="w-4 h-4" />
             </button>
@@ -80,7 +80,7 @@ export function BreathingModal({ open, onClose }: Props) {
               <div>
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <Wind className="w-5 h-5 text-cyan-400" />
-                  <h2 className="text-white font-bold text-xl">Breathing Exercise</h2>
+                  <h2 className="text-foreground font-bold text-xl">Breathing Exercise</h2>
                 </div>
                 <p className="text-muted-foreground text-sm">4-7-8 technique — calms the nervous system</p>
               </div>
@@ -99,7 +99,7 @@ export function BreathingModal({ open, onClose }: Props) {
                   style={{ backgroundColor: `${current.color}30`, border: `3px solid ${current.color}60` }}
                 >
                   <div className="text-center">
-                    <p className="text-4xl font-bold text-white">{seconds}</p>
+                    <p className="text-4xl font-bold text-foreground">{seconds}</p>
                     <p className="text-xs mt-1" style={{ color: current.color }}>{current.label}</p>
                   </div>
                 </motion.div>
@@ -124,11 +124,11 @@ export function BreathingModal({ open, onClose }: Props) {
 
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Cycles: <span className="text-white font-semibold">{cycles}</span>
+                  Cycles: <span className="text-foreground font-semibold">{cycles}</span>
                 </span>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 text-sm transition-colors"
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-foreground/80 text-sm transition-colors"
                 >
                   Done
                 </button>

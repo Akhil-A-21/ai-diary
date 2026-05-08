@@ -51,14 +51,14 @@ export default function Habits() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold text-white">Habits</h1>
+          <h1 className="font-display text-4xl font-bold text-foreground">Habits</h1>
           <p className="text-sm mt-1 text-muted-foreground">Build consistency, one day at a time</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-sm font-medium"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-foreground text-sm font-medium"
           style={{ background: "hsl(var(--primary))" }}
           data-testid="button-add-habit"
         >
@@ -98,7 +98,7 @@ export default function Habits() {
               </div>
               <div className="flex gap-2">
                 <button onClick={handleCreate} disabled={createHabit.isPending}
-                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium"
+                  className="flex-1 py-2.5 rounded-xl text-foreground text-sm font-medium"
                   style={{ background: "hsl(var(--primary))" }}>
                   {createHabit.isPending ? "Adding..." : "Add Habit"}
                 </button>

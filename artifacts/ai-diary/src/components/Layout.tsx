@@ -42,15 +42,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <SosPanel open={sosOpen} onClose={() => setSosOpen(false)} />
 
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex w-64 flex-col glass-panel border-r border-white/5 z-50 relative flex-shrink-0 h-screen sticky top-0">
+      <aside className="hidden md:flex w-64 flex-col glass-panel border-r border-border z-50 relative flex-shrink-0 h-screen sticky top-0">
         {/* Logo */}
         <div className="p-6 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)))" }}>
-              <Video className="w-5 h-5 text-white" />
+              <Video className="w-5 h-5 text-foreground" />
             </div>
             <div>
-              <p className="font-display font-bold text-white text-base leading-none">AI Diary</p>
+              <p className="font-display font-bold text-foreground text-base leading-none">AI Diary</p>
               <p className="text-xs text-muted-foreground leading-none mt-0.5">AI Video Diary</p>
             </div>
           </div>
@@ -64,7 +64,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link key={item.href} href={item.href} className="outline-none">
                 <div className={cn(
                   "flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all duration-300 relative group",
-                  isActive ? "text-white font-medium" : "text-muted-foreground hover:text-white hover:bg-white/5"
+                  isActive ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}>
                   {isActive && (
                     <motion.div
@@ -93,7 +93,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Link key={item.href} href={item.href} className="outline-none">
                 <div className={cn(
                   "flex items-center gap-4 px-4 py-3 rounded-2xl cursor-pointer transition-all duration-300 relative group",
-                  isActive ? "text-white font-medium" : "text-muted-foreground hover:text-white hover:bg-white/5"
+                  isActive ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 )}>
                   {isActive && (
                     <motion.div
@@ -114,23 +114,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* User profile */}
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-border">
           {user && (
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/5">
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/40">
               <img
                 src={user.picture}
                 alt={user.name}
-                className="w-9 h-9 rounded-full border border-white/20 flex-shrink-0"
+                className="w-9 h-9 rounded-full border border-border flex-shrink-0"
                 referrerPolicy="no-referrer"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{user.name}</p>
+                <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
               </div>
               <button
                 onClick={logout}
                 title="Sign out"
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex-shrink-0"
               >
                 <LogOut className="w-4 h-4" />
               </button>
@@ -159,7 +159,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </motion.button>
 
       {/* ── Mobile Bottom Nav ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/5 z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border z-50">
         <div className="flex items-center justify-around p-2">
           {MOBILE_NAV.map((item) => {
             const isActive = location === item.href;
@@ -168,7 +168,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div className="flex flex-col items-center gap-1 p-2 cursor-pointer">
                   <div className={cn(
                     "p-2 rounded-xl transition-all duration-300",
-                    isActive ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-white"
+                    isActive ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
                   )}>
                     <item.icon className="w-5 h-5" />
                   </div>

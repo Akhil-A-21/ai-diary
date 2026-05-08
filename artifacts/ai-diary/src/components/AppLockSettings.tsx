@@ -247,7 +247,7 @@ export default function AppLockSettings({ status, onStatusChange }: Props) {
                 borderColor: "hsl(240 12% 20%)",
               }}
             >
-              <p className="text-sm font-semibold text-white">
+              <p className="text-sm font-semibold text-foreground">
                 {enabled ? "Change PIN" : "Set a new PIN"}
               </p>
 
@@ -284,7 +284,7 @@ export default function AppLockSettings({ status, onStatusChange }: Props) {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleSavePin}
                   disabled={saving || newPin.length < 4 || confirmPin.length < 4}
-                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-foreground text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
                   style={{ background: "hsl(var(--primary))" }}
                 >
                   <Check size={14} />
@@ -340,7 +340,7 @@ export default function AppLockSettings({ status, onStatusChange }: Props) {
                   whileTap={{ scale: 0.97 }}
                   onClick={handleConfirmDisable}
                   disabled={disabling || disablePin.length < 4}
-                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-xl text-foreground text-sm font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
                   style={{ background: "hsl(0 65% 45%)" }}
                 >
                   <LockOpen size={14} />

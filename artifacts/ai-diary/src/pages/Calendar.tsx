@@ -37,7 +37,7 @@ export default function Calendar() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-4xl font-bold text-white">Mood Calendar</h1>
+        <h1 className="font-display text-4xl font-bold text-foreground">Mood Calendar</h1>
         <p className="text-sm mt-1 text-muted-foreground">Each day coloured by your mood</p>
       </div>
 

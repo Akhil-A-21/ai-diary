@@ -28,14 +28,14 @@ export default function Timeline() {
     <div className="space-y-6 pb-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-4xl font-bold text-white">Timeline</h1>
+          <h1 className="font-display text-4xl font-bold text-foreground">Timeline</h1>
           <p className="text-sm mt-1 text-muted-foreground">All your diary entries</p>
         </div>
         <Link href="/record">
           <motion.button
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-medium"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-foreground text-sm font-medium"
             style={{ background: "hsl(var(--primary))" }}
             data-testid="button-new-entry"
           >
@@ -53,8 +53,7 @@ export default function Timeline() {
           placeholder="Search entries..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-11 pr-4 py-3 rounded-2xl border text-sm outline-none text-white placeholder:text-muted-foreground"
-          style={{ background: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.1)" }}
+          className="w-full pl-11 pr-4 py-3 rounded-2xl border border-border text-sm outline-none text-foreground placeholder:text-muted-foreground bg-input"
           data-testid="input-search"
         />
       </div>
@@ -63,16 +62,16 @@ export default function Timeline() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.05)" }} />
+            <div key={i} className="h-24 rounded-2xl animate-pulse bg-muted/50" />
           ))}
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">📹</p>
-          <p className="font-medium text-white">No entries yet</p>
+          <p className="font-medium text-foreground">No entries yet</p>
           <p className="text-sm mt-1 text-muted-foreground">Start recording your video diary</p>
           <Link href="/record">
-            <button className="mt-4 px-5 py-2.5 rounded-xl text-white text-sm font-medium" style={{ background: "hsl(var(--primary))" }}>
+            <button className="mt-4 px-5 py-2.5 rounded-xl text-foreground text-sm font-medium" style={{ background: "hsl(var(--primary))" }}>
               Record First Entry
             </button>
           </Link>
@@ -102,7 +101,7 @@ export default function Timeline() {
                           {getMoodEmoji(entry.mood)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-white truncate">{entry.title}</p>
+                          <p className="font-semibold text-sm text-foreground truncate">{entry.title}</p>
                           <div className="flex items-center gap-3 mt-0.5">
                             <span className="flex items-center gap-1 text-xs text-muted-foreground">
                               <Calendar className="w-3 h-3" />
@@ -126,7 +125,7 @@ export default function Timeline() {
                             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                               <Tag className="w-3 h-3 text-muted-foreground" />
                               {entry.tags.map((tag) => (
-                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.08)", color: "hsl(var(--muted-foreground))" }}>
+                                <span key={tag} className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                   {tag}
                                 </span>
                               ))}

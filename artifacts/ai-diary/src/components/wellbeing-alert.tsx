@@ -121,13 +121,13 @@ export function WellbeingAlert() {
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${cfg.accent}22` }}>
                   <Icon className="w-4 h-4" style={{ color: cfg.accent }} />
                 </div>
-                <p className="flex-1 text-sm text-white font-medium leading-snug">
+                <p className="flex-1 text-sm text-foreground font-medium leading-snug">
                   {cfg.headline(data)}{" "}
                   <span className="underline underline-offset-2" style={{ color: cfg.badgeColor }}>See resources</span>
                 </p>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
-                  className="p-1.5 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors flex-shrink-0"
+                  className="p-1.5 rounded-lg text-foreground/40 hover:text-foreground/80 hover:bg-muted transition-colors flex-shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -143,32 +143,32 @@ export function WellbeingAlert() {
                       <Icon className="w-6 h-6" style={{ color: cfg.accent }} />
                     </div>
                     <div>
-                      <h3 className="text-white font-bold text-lg leading-tight">{cfg.headline(data)}</h3>
+                      <h3 className="text-foreground font-bold text-lg leading-tight">{cfg.headline(data)}</h3>
                       <p className="text-xs font-medium mt-0.5" style={{ color: cfg.badgeColor }}>
                         {data.severity === "urgent" ? "We're here for you" : "Mental Health Support"}
                       </p>
                     </div>
                   </div>
-                  <button onClick={handleDismiss} className="p-2 rounded-xl text-white/40 hover:text-white/80 hover:bg-white/10 transition-colors flex-shrink-0">
+                  <button onClick={handleDismiss} className="p-2 rounded-xl text-foreground/40 hover:text-foreground/80 hover:bg-muted transition-colors flex-shrink-0">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="px-6 py-5 space-y-4">
-                  <p className="text-white/90 text-sm leading-relaxed">{cfg.body(data)}</p>
+                  <p className="text-foreground/90 text-sm leading-relaxed">{cfg.body(data)}</p>
 
                   {cfg.showHelpline && (
-                    <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${cfg.border}` }}>
+                    <div className="rounded-2xl p-4" style={{ background: "hsl(var(--muted) / 0.4)", border: `1px solid ${cfg.border}` }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Phone className="w-4 h-4" style={{ color: cfg.accent }} />
-                        <p className="text-white font-semibold text-sm">TELE MANAS — National Helpline</p>
+                        <p className="text-foreground font-semibold text-sm">TELE MANAS — National Helpline</p>
                       </div>
-                      <p className="text-white/60 text-xs leading-relaxed mb-3">
+                      <p className="text-foreground/60 text-xs leading-relaxed mb-3">
                         Free, confidential mental health support available 24/7. Speak with trained counsellors in your language.
                       </p>
                       <a
                         href="tel:14416"
-                        className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-bold text-white text-base transition-all active:scale-95"
+                        className="flex items-center justify-center gap-2 w-full py-3 px-6 rounded-xl font-bold text-foreground text-base transition-all active:scale-95"
                         style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
                       >
                         <Phone className="w-5 h-5" />
@@ -177,7 +177,7 @@ export function WellbeingAlert() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 text-white/40 text-xs">
+                  <div className="flex items-center gap-2 text-foreground/40 text-xs">
                     <Heart className="w-3 h-3 text-red-400 flex-shrink-0" />
                     <span>Reaching out for help is a sign of strength, not weakness.</span>
                   </div>
@@ -186,14 +186,14 @@ export function WellbeingAlert() {
                 <div className="px-6 pb-6 flex gap-3">
                   <button
                     onClick={handleDismiss}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white/60 border border-white/10 hover:bg-white/5 transition-colors"
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-foreground/60 border border-border hover:bg-muted/50 transition-colors"
                   >
                     I'm okay for now
                   </button>
                   <Link
                     href="/chat"
                     onClick={handleDismiss}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-center text-white border transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-center text-foreground border transition-colors flex items-center justify-center gap-1.5"
                     style={{ background: `${cfg.accent}33`, borderColor: `${cfg.accent}55` }}
                   >
                     <MessageCircleHeart className="w-4 h-4" />
@@ -202,7 +202,7 @@ export function WellbeingAlert() {
                   <Link
                     href="/record"
                     onClick={handleDismiss}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-center text-white border border-white/10 hover:bg-white/5 transition-colors flex items-center justify-center gap-1.5"
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-center text-foreground border border-border hover:bg-muted/50 transition-colors flex items-center justify-center gap-1.5"
                   >
                     <Video className="w-4 h-4" />
                     Record

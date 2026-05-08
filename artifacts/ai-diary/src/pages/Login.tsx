@@ -61,9 +61,9 @@ export default function Login() {
         <div
           className="rounded-3xl border p-8 space-y-8"
           style={{
-            background: "hsl(240 15% 11%)",
-            borderColor: "hsl(240 12% 20%)",
-            boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
+            background: "hsl(var(--card))",
+            borderColor: "hsl(var(--border))",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.15)",
           }}
         >
           {/* Logo */}
@@ -72,26 +72,25 @@ export default function Login() {
               className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
               style={{ background: "hsl(var(--primary))" }}
             >
-              <Sparkles size={32} className="text-white" />
+              <Sparkles size={32} className="text-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold text-white">
+              <h1 className="font-display text-3xl font-bold text-foreground">
                 AI Diary
               </h1>
-              <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
+              <p className="text-sm mt-1 text-muted-foreground">
                 Your daily companion
               </p>
             </div>
           </div>
 
           {/* Divider */}
-          <div className="border-t" style={{ borderColor: "hsl(240 12% 20%)" }} />
+          <div className="border-t border-border" />
 
           {/* Sign in area */}
           <div className="space-y-4">
             <p
-              className="text-center text-sm font-medium"
-              style={{ color: "hsl(240 8% 70%)" }}
+              className="text-center text-sm font-medium text-muted-foreground"
             >
               Sign in to access your personal diary
             </p>
@@ -102,9 +101,9 @@ export default function Login() {
               onClick={() => handleGoogleLogin()}
               className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-xl font-medium text-sm transition-all"
               style={{
-                background: "hsl(240 15% 17%)",
-                border: "1px solid hsl(240 12% 26%)",
-                color: "hsl(240 10% 90%)",
+                background: "hsl(var(--muted))",
+                border: "1px solid hsl(var(--border))",
+                color: "hsl(var(--foreground))",
               }}
             >
               {/* Google logo SVG */}
@@ -119,16 +118,16 @@ export default function Login() {
           </div>
 
           {/* Privacy note */}
-          <div className="flex items-start gap-3 rounded-xl p-3" style={{ background: "hsl(240 15% 15%)" }}>
+          <div className="flex items-start gap-3 rounded-xl p-3 bg-muted">
             <Shield size={14} className="flex-shrink-0 mt-0.5" style={{ color: "hsl(var(--primary))" }} />
-            <p className="text-xs leading-relaxed" style={{ color: "hsl(240 8% 55%)" }}>
+            <p className="text-xs leading-relaxed text-muted-foreground">
               Your diary is completely private. Each account has its own encrypted space — nobody else can see your entries.
             </p>
           </div>
 
           <div className="flex items-center justify-center gap-2">
-            <Lock size={11} style={{ color: "hsl(240 8% 40%)" }} />
-            <p className="text-xs" style={{ color: "hsl(240 8% 40%)" }}>
+            <Lock size={11} className="text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">
               Secured by Google OAuth
             </p>
           </div>

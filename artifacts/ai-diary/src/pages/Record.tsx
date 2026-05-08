@@ -167,7 +167,7 @@ export default function Record() {
       <div className="max-w-lg mx-auto flex flex-col items-center justify-center py-16 text-center space-y-5">
         <AlertCircle size={52} style={{ color: "hsl(var(--destructive))" }} />
         <div>
-          <h1 className="font-display text-2xl font-bold mb-2 text-white">Camera Access Required</h1>
+          <h1 className="font-display text-2xl font-bold mb-2 text-foreground">Camera Access Required</h1>
           {isInIframe ? (
             <p className="text-sm leading-relaxed" style={{ color: "hsl(240 8% 60%)" }}>
               The preview panel can't access your camera.<br />
@@ -186,14 +186,14 @@ export default function Record() {
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-medium no-underline"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl text-foreground font-medium no-underline"
             style={{ background: "hsl(var(--primary))" }}
           >
             Open in New Tab
           </motion.a>
         ) : (
           <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={openCamera}
-            className="px-6 py-3 rounded-xl text-white font-medium" style={{ background: "hsl(var(--primary))" }}>
+            className="px-6 py-3 rounded-xl text-foreground font-medium" style={{ background: "hsl(var(--primary))" }}>
             Try Again
           </motion.button>
         )}
@@ -219,7 +219,7 @@ export default function Record() {
       <div className="max-w-lg mx-auto py-10 space-y-6">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
           <CheckCircle2 size={64} className="mx-auto mb-4" style={{ color: aiUnavailable ? "#f59e0b" : "#22c55e" }} />
-          <h1 className="font-display text-3xl font-bold mb-1 text-white">Entry Saved!</h1>
+          <h1 className="font-display text-3xl font-bold mb-1 text-foreground">Entry Saved!</h1>
           <p className="text-sm" style={{ color: "hsl(240 8% 55%)" }}>
             {aiUnavailable
               ? "Your recording is saved — AI analysis is temporarily unavailable"
@@ -273,7 +273,7 @@ export default function Record() {
 
         <div className="flex gap-3">
           <button onClick={() => setLocation(`/entry/${entryId}`)}
-            className="flex-1 py-3 rounded-xl text-white font-medium"
+            className="flex-1 py-3 rounded-xl text-foreground font-medium"
             style={{ background: "hsl(var(--primary))" }}>
             View Entry
           </button>
@@ -318,7 +318,7 @@ export default function Record() {
       {/* ── Page Header ── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-4xl font-bold text-white">
+          <h1 className="font-display text-4xl font-bold text-foreground">
             Record Entry
           </h1>
           <p className="text-sm mt-1" style={{ color: "hsl(240 8% 55%)" }}>
@@ -422,10 +422,10 @@ export default function Record() {
             <Lightbulb size={14} className="flex-shrink-0 mt-0.5" style={{ color: "#f59e0b" }} />
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#f59e0b" }}>Today's Prompt</p>
-              <p className="text-sm leading-snug text-white">{journalPrompt.prompt}</p>
+              <p className="text-sm leading-snug text-foreground">{journalPrompt.prompt}</p>
             </div>
             <button onClick={() => refetchPrompt()} className="flex-shrink-0 p-1 rounded-lg hover:bg-white/10 transition-colors">
-              <RefreshCw size={13} className="text-white/60" />
+              <RefreshCw size={13} className="text-foreground/60" />
             </button>
           </motion.div>
         )}
@@ -433,7 +433,7 @@ export default function Record() {
         {/* REC badge */}
         {stage === "recording" && (
           <div
-            className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-white text-xs font-bold"
+            className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full text-foreground text-xs font-bold"
             style={{ background: "rgba(239,68,68,0.85)", backdropFilter: "blur(6px)" }}
           >
             <motion.div className="w-2 h-2 rounded-full bg-white"
@@ -501,7 +501,7 @@ export default function Record() {
               <motion.button
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 onClick={analyzeRecording}
-                className="flex-1 py-3 rounded-xl text-white font-medium flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl text-foreground font-medium flex items-center justify-center gap-2"
                 style={{ background: "hsl(var(--primary))" }}
               >
                 <Sparkles size={16} />
