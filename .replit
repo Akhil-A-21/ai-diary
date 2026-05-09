@@ -64,4 +64,4 @@ VAPID_EMAIL = "mailto:admin@aidiary.app"
 [deployment]
 deploymentTarget = "vm"
 run = ["bash", "-c", "NODE_ENV=production PORT=5000 node_modules/.bin/tsx artifacts/api-server/src/index.ts"]
-build = ["bash", "-c", "rm -rf node_modules && npm install && node_modules/.bin/vite build --config artifacts/ai-diary/vite.config.ts"]
+build = ["bash", "-c", "rm -rf node_modules lib/db/node_modules artifacts/api-server/node_modules artifacts/ai-diary/node_modules .cache && npm install && node_modules/.bin/vite build --config artifacts/ai-diary/vite.config.ts"]
