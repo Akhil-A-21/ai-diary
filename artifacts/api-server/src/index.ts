@@ -29,6 +29,17 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use("/uploads", express.static(UPLOAD_DIR));
+
+// In production, serve the built React frontend and handle SPA routing
+if (process.env.NODE_ENV === "production") {
+  const distDir = path.join(process.cwd(), "artifacts", "ai-diary", "dist");
+  app.use(express.static(distDir));
+  // SPA fallback — serve index.html for any non-API route
+  app.get(/^(?!\/api|\/uploads).*$/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(distDir, "index.html"));
+  });
+}
+
 app.use("/api", authMiddleware);
 
 app.use("/api/diary", diaryRouter);
