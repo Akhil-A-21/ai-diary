@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev:api": "PORT=8080 tsx artifacts/api-server/src/index.ts",
-    "dev:frontend": "vite --config artifacts/ai-diary/vite.config.ts --port 5000 --host 0.0.0.0"
+    "dev:frontend": "vite --config artifacts/ai-diary/vite.config.ts --port 5000 --host 0.0.0.0",
+    "preinstall": "node -e \"var fs=require('fs'),p=require('path'),nm='node_modules';try{fs.readdirSync(nm).forEach(function(f){if(f.startsWith('.')){try{var fp=p.join(nm,f);if(fs.lstatSync(fp).isSymbolicLink())fs.unlinkSync(fp);}catch(e){}}});var pnpm=p.join(nm,'.pnpm');if(fs.existsSync(pnpm))fs.rmSync(pnpm,{recursive:true,force:true});}catch(e){}\" 2>/dev/null; exit 0"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

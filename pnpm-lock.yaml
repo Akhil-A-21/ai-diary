@@ -303,9 +303,6 @@ importers:
 
   artifacts/api-server:
     dependencies:
-      '@workspace/db':
-        specifier: workspace:*
-        version: link:../../lib/db
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
