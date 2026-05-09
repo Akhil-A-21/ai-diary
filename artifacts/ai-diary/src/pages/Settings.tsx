@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, Shield, User, Sun, Moon, Lock,
   Mail, Clock, Loader2, CheckCircle2, AlertCircle, Send, Smartphone, BellOff,
-  FileDown
+  FileDown, Archive, Video, CalendarDays, CalendarRange
 } from "lucide-react";
 import { usePreferences, useUpdatePreferences, useSendTestEmail, useDiaryEntries, useMoodTrends, useEmotionPatterns } from "../hooks/useApi";
 import { toast } from "../hooks/use-toast";
@@ -127,6 +127,14 @@ export default function Settings() {
   const [pushLoading, setPushLoading] = useState(false);
   const [pdfState, setPdfState] = useState<BtnState>("idle");
 
+  // Export states
+  const [exportDate, setExportDate] = useState<string>("");
+  const [exportMonth, setExportMonth] = useState<string>("");
+  const [datePdfState, setDatePdfState] = useState<BtnState>("idle");
+  const [monthPdfState, setMonthPdfState] = useState<BtnState>("idle");
+  const [monthVideoState, setMonthVideoState] = useState<BtnState>("idle");
+  const [allVideoState, setAllVideoState] = useState<BtnState>("idle");
+
   const { data: pinStatus, refetch: refetchPin } = useQuery({
     queryKey: ["pin-status"],
     queryFn: async () => {
@@ -190,6 +198,120 @@ export default function Settings() {
       setTimeout(() => setPdfState("idle"), 4000);
       toast({ title: "Failed to generate PDF", variant: "destructive" });
     }
+  };
+
+  const handleDatePdf = async () => {
+    if (!exportDate) return;
+    setDatePdfState("loading");
+    try {
+      const filtered = allEntries.filter((e) => e.entryDate === exportDate);
+      if (filtered.length === 0) {
+        toast({ title: "No entries on this date", variant: "destructive" });
+        setDatePdfState("err");
+        setTimeout(() => setDatePdfState("idle"), 3000);
+        return;
+      }
+      const filteredTrends = moodTrends.filter((t) => t.date === exportDate);
+      const patterns = filtered.reduce<Record<string, number>>((acc, e) => {
+        if (e.mood) acc[e.mood] = (acc[e.mood] ?? 0) + 1;
+        return acc;
+      }, {});
+      const patternArr = Object.entries(patterns).map(([mood, count]) => ({ mood, count }));
+      const dateLabel = new Date(exportDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      await exportDiaryPdf(
+        user?.name ?? user?.email ?? "User",
+        filtered,
+        filteredTrends,
+        patternArr,
+        dateLabel,
+        `ai-diary-${exportDate}.pdf`,
+      );
+      setDatePdfState("ok");
+      setTimeout(() => setDatePdfState("idle"), 4000);
+      toast({ title: `PDF for ${exportDate} downloaded!` });
+    } catch (err) {
+      console.error(err);
+      setDatePdfState("err");
+      setTimeout(() => setDatePdfState("idle"), 4000);
+      toast({ title: "Failed to generate PDF", variant: "destructive" });
+    }
+  };
+
+  const handleMonthPdf = async () => {
+    if (!exportMonth) return;
+    setMonthPdfState("loading");
+    try {
+      const filtered = allEntries.filter((e) => e.entryDate.startsWith(exportMonth));
+      if (filtered.length === 0) {
+        toast({ title: "No entries for this month", variant: "destructive" });
+        setMonthPdfState("err");
+        setTimeout(() => setMonthPdfState("idle"), 3000);
+        return;
+      }
+      const filteredTrends = moodTrends.filter((t) => t.date.startsWith(exportMonth));
+      const patterns = filtered.reduce<Record<string, number>>((acc, e) => {
+        if (e.mood) acc[e.mood] = (acc[e.mood] ?? 0) + 1;
+        return acc;
+      }, {});
+      const patternArr = Object.entries(patterns).map(([mood, count]) => ({ mood, count }));
+      const [yr, mo] = exportMonth.split("-");
+      const monthLabel = new Date(Number(yr), Number(mo) - 1, 1).toLocaleDateString("en-US", { year: "numeric", month: "long" });
+      await exportDiaryPdf(
+        user?.name ?? user?.email ?? "User",
+        filtered,
+        filteredTrends,
+        patternArr,
+        monthLabel,
+        `ai-diary-${exportMonth}.pdf`,
+      );
+      setMonthPdfState("ok");
+      setTimeout(() => setMonthPdfState("idle"), 4000);
+      toast({ title: `PDF for ${monthLabel} downloaded!` });
+    } catch (err) {
+      console.error(err);
+      setMonthPdfState("err");
+      setTimeout(() => setMonthPdfState("idle"), 4000);
+      toast({ title: "Failed to generate PDF", variant: "destructive" });
+    }
+  };
+
+  const downloadVideoZip = async (
+    params: string,
+    label: string,
+    setter: (s: BtnState) => void,
+  ) => {
+    setter("loading");
+    try {
+      const res = await fetch(`/api/diary/export/videos/zip${params}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "No recordings found");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ai-diary-recordings-${label}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setter("ok");
+      setTimeout(() => setter("idle"), 4000);
+      toast({ title: "Recordings ZIP downloaded!" });
+    } catch (err: any) {
+      console.error(err);
+      setter("err");
+      setTimeout(() => setter("idle"), 4000);
+      toast({ title: err?.message ?? "Failed to download recordings", variant: "destructive" });
+    }
+  };
+
+  const handleMonthVideoZip = () => {
+    if (!exportMonth) return;
+    downloadVideoZip(`?month=${exportMonth}`, exportMonth, setMonthVideoState);
+  };
+
+  const handleAllVideoZip = () => {
+    downloadVideoZip("", "all", setAllVideoState);
   };
 
   const handleTestEmail = async () => {
@@ -483,68 +605,161 @@ export default function Settings() {
 
       {/* ── Export ── */}
       <SectionCard title="Export Your Diary" icon={<FileDown size={15} />}>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Download a beautifully formatted PDF of your entire diary — every entry with its mood, summary, triggers, and your mood analytics charts.
+            Export entries as a beautifully formatted PDF — or download your video recordings. Filter by date, month, or grab everything at once.
           </p>
 
-          {/* Preview of what's included */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { icon: "📅", label: "Day & Date", sub: "Each entry with day of week" },
-              { icon: "💜", label: "Mood & Score", sub: "Color-coded mood for each day" },
-              { icon: "📝", label: "Summary", sub: "AI-generated daily summary" },
-              { icon: "⚡", label: "Triggers", sub: "Key emotional triggers" },
-              { icon: "📈", label: "Line Chart", sub: "Mood timeline over time" },
-              { icon: "🥧", label: "Pie Chart", sub: "Emotion pattern breakdown" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
-                style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.12)" }}
+          {/* ── By specific date ── */}
+          <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.14)" }}>
+            <div className="flex items-center gap-2">
+              <CalendarDays size={13} style={{ color: "hsl(var(--primary))" }} />
+              <p className="text-xs font-semibold text-foreground">By Date</p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="date"
+                value={exportDate}
+                max={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setExportDate(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border text-sm outline-none text-foreground flex-1 min-w-0"
+                style={{ background: "hsl(var(--input))", borderColor: "hsl(var(--border))" }}
+              />
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDatePdf}
+                disabled={!exportDate || datePdfState === "loading"}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40 transition-all flex-shrink-0"
+                style={{
+                  background: datePdfState === "ok" ? "linear-gradient(135deg,#22c55e,#16a34a)" : datePdfState === "err" ? "linear-gradient(135deg,#ef4444,#dc2626)" : "linear-gradient(135deg,hsl(var(--primary)),#a855f7)",
+                  color: "#fff",
+                }}
               >
-                <span className="text-base flex-shrink-0">{item.icon}</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
-                  <p className="text-xs text-muted-foreground leading-tight mt-0.5">{item.sub}</p>
-                </div>
-              </div>
-            ))}
+                {datePdfState === "loading" && <Loader2 size={11} className="animate-spin" />}
+                {datePdfState === "ok" && <CheckCircle2 size={11} />}
+                {datePdfState === "err" && <AlertCircle size={11} />}
+                {datePdfState === "idle" && <FileDown size={11} />}
+                {datePdfState === "loading" ? "Generating…" : datePdfState === "ok" ? "Done!" : datePdfState === "err" ? "Failed" : "PDF"}
+              </motion.button>
+            </div>
           </div>
 
-          {/* Stats & download button */}
-          <div className="flex items-center justify-between pt-1">
-            <div>
-              <p className="text-sm font-medium text-foreground">Download PDF Report</p>
-              <p className="text-xs mt-0.5 text-muted-foreground">
-                {allEntries.length > 0
-                  ? `${allEntries.length} entr${allEntries.length === 1 ? "y" : "ies"} ready to export`
-                  : "No entries yet — start recording to export"}
-              </p>
+          {/* ── By month ── */}
+          <div className="rounded-xl p-4 space-y-3" style={{ background: "hsl(var(--primary) / 0.06)", border: "1px solid hsl(var(--primary) / 0.14)" }}>
+            <div className="flex items-center gap-2">
+              <CalendarRange size={13} style={{ color: "hsl(var(--primary))" }} />
+              <p className="text-xs font-semibold text-foreground">By Month</p>
             </div>
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleExportPdf}
-              disabled={pdfState === "loading" || allEntries.length === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
-              style={{
-                background: pdfState === "ok"
-                  ? "linear-gradient(135deg,#22c55e,#16a34a)"
-                  : pdfState === "err"
-                  ? "linear-gradient(135deg,#ef4444,#dc2626)"
-                  : "linear-gradient(135deg,hsl(var(--primary)),#a855f7)",
-                color: "#fff",
-              }}
-            >
-              {pdfState === "loading" && <Loader2 size={14} className="animate-spin" />}
-              {pdfState === "ok"      && <CheckCircle2 size={14} />}
-              {pdfState === "err"     && <AlertCircle size={14} />}
-              {pdfState === "idle"    && <FileDown size={14} />}
-              {pdfState === "loading" ? "Generating…"
-                : pdfState === "ok"  ? "Downloaded!"
-                : pdfState === "err" ? "Failed"
-                : "Download PDF"}
-            </motion.button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <input
+                type="month"
+                value={exportMonth}
+                max={new Date().toISOString().slice(0, 7)}
+                onChange={(e) => setExportMonth(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border text-sm outline-none text-foreground flex-1 min-w-0"
+                style={{ background: "hsl(var(--input))", borderColor: "hsl(var(--border))" }}
+              />
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleMonthPdf}
+                disabled={!exportMonth || monthPdfState === "loading"}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40 transition-all flex-shrink-0"
+                style={{
+                  background: monthPdfState === "ok" ? "linear-gradient(135deg,#22c55e,#16a34a)" : monthPdfState === "err" ? "linear-gradient(135deg,#ef4444,#dc2626)" : "linear-gradient(135deg,hsl(var(--primary)),#a855f7)",
+                  color: "#fff",
+                }}
+              >
+                {monthPdfState === "loading" && <Loader2 size={11} className="animate-spin" />}
+                {monthPdfState === "ok" && <CheckCircle2 size={11} />}
+                {monthPdfState === "err" && <AlertCircle size={11} />}
+                {monthPdfState === "idle" && <FileDown size={11} />}
+                {monthPdfState === "loading" ? "Generating…" : monthPdfState === "ok" ? "Done!" : monthPdfState === "err" ? "Failed" : "PDF"}
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleMonthVideoZip}
+                disabled={!exportMonth || monthVideoState === "loading"}
+                title="Download all video recordings for this month as a ZIP"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40 transition-all flex-shrink-0"
+                style={{
+                  background: monthVideoState === "ok" ? "linear-gradient(135deg,#22c55e,#16a34a)" : monthVideoState === "err" ? "linear-gradient(135deg,#ef4444,#dc2626)" : "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                  color: "#fff",
+                }}
+              >
+                {monthVideoState === "loading" && <Loader2 size={11} className="animate-spin" />}
+                {monthVideoState === "ok" && <CheckCircle2 size={11} />}
+                {monthVideoState === "err" && <AlertCircle size={11} />}
+                {monthVideoState === "idle" && <Archive size={11} />}
+                {monthVideoState === "loading" ? "Zipping…" : monthVideoState === "ok" ? "Done!" : monthVideoState === "err" ? "None found" : "Videos ZIP"}
+              </motion.button>
+            </div>
+          </div>
+
+          {/* ── All entries ── */}
+          <div className="h-px" style={{ background: "hsl(var(--border))" }} />
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-foreground">All Entries</p>
+
+            {/* All-entries PDF */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Full Diary PDF</p>
+                <p className="text-xs mt-0.5 text-muted-foreground">
+                  {allEntries.length > 0
+                    ? `${allEntries.length} entr${allEntries.length === 1 ? "y" : "ies"} · mood charts included`
+                    : "No entries yet"}
+                </p>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleExportPdf}
+                disabled={pdfState === "loading" || allEntries.length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                style={{
+                  background: pdfState === "ok"
+                    ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                    : pdfState === "err"
+                    ? "linear-gradient(135deg,#ef4444,#dc2626)"
+                    : "linear-gradient(135deg,hsl(var(--primary)),#a855f7)",
+                  color: "#fff",
+                }}
+              >
+                {pdfState === "loading" && <Loader2 size={14} className="animate-spin" />}
+                {pdfState === "ok"      && <CheckCircle2 size={14} />}
+                {pdfState === "err"     && <AlertCircle size={14} />}
+                {pdfState === "idle"    && <FileDown size={14} />}
+                {pdfState === "loading" ? "Generating…" : pdfState === "ok" ? "Downloaded!" : pdfState === "err" ? "Failed" : "Download PDF"}
+              </motion.button>
+            </div>
+
+            {/* All-videos ZIP */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">All Recordings ZIP</p>
+                <p className="text-xs mt-0.5 text-muted-foreground">Every video diary entry bundled in one archive</p>
+              </div>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAllVideoZip}
+                disabled={allVideoState === "loading" || allEntries.length === 0}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all"
+                style={{
+                  background: allVideoState === "ok"
+                    ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                    : allVideoState === "err"
+                    ? "linear-gradient(135deg,#ef4444,#dc2626)"
+                    : "linear-gradient(135deg,#7c3aed,#6d28d9)",
+                  color: "#fff",
+                }}
+              >
+                {allVideoState === "loading" && <Loader2 size={14} className="animate-spin" />}
+                {allVideoState === "ok"      && <CheckCircle2 size={14} />}
+                {allVideoState === "err"     && <AlertCircle size={14} />}
+                {allVideoState === "idle"    && <Video size={14} />}
+                {allVideoState === "loading" ? "Zipping…" : allVideoState === "ok" ? "Downloaded!" : allVideoState === "err" ? "None found" : "Download ZIP"}
+              </motion.button>
+            </div>
           </div>
         </div>
       </SectionCard>

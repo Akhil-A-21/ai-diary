@@ -121,7 +121,7 @@ function pageFooter(doc: jsPDF, pageW: number, pageH: number, pageNum: number, t
 }
 
 // ─── Cover page ───────────────────────────────────────────────────────────────
-function buildCover(doc: jsPDF, pageW: number, pageH: number, userName: string, entries: DiaryEntry[]) {
+function buildCover(doc: jsPDF, pageW: number, pageH: number, userName: string, entries: DiaryEntry[], label?: string) {
   fillRect(doc, 0, 0, pageW, pageH, BG);
 
   // Purple gradient header band
@@ -162,6 +162,13 @@ function buildCover(doc: jsPDF, pageW: number, pageH: number, userName: string, 
   doc.setFontSize(11);
   doc.setFont("helvetica", "normal");
   doc.text("Your Personal Emotional Journey", cx, 95, { align: "center" });
+
+  if (label) {
+    textColor(doc, [200, 170, 255]);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    doc.text(label.toUpperCase(), cx, 105, { align: "center" });
+  }
 
   // Stats strip
   const statsY = 115;
@@ -617,6 +624,8 @@ export async function exportDiaryPdf(
   entries: DiaryEntry[],
   trends: MoodTrend[],
   patterns: EmotionPattern[],
+  label?: string,
+  filename?: string,
 ) {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -629,7 +638,7 @@ export async function exportDiaryPdf(
   const totalPages = 1 + sorted.length + 2;
 
   // ── Cover ──
-  buildCover(doc, pageW, pageH, userName, sorted);
+  buildCover(doc, pageW, pageH, userName, sorted, label);
 
   // ── Entry pages ──
   sorted.forEach((entry, idx) => {
@@ -650,5 +659,5 @@ export async function exportDiaryPdf(
 
   // ── Save ──
   const dateStr = new Date().toISOString().split("T")[0];
-  doc.save(`ai-diary-report-${dateStr}.pdf`);
+  doc.save(filename ?? `ai-diary-report-${dateStr}.pdf`);
 }

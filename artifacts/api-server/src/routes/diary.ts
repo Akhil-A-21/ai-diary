@@ -700,6 +700,64 @@ router.get("/emotion-reasons/:mood", async (req: Request, res: Response) => {
   }
 });
 
+// ── GET /diary/export/videos/zip ─────────────────────────────────────────────
+router.get("/export/videos/zip", async (req: Request, res: Response) => {
+  try {
+    const userEmail = getUserEmail(req);
+    const { month, date } = req.query;
+
+    const conditions: ReturnType<typeof eq>[] = [eq(diaryEntries.userEmail, userEmail) as any];
+    if (date) {
+      conditions.push(eq(diaryEntries.entryDate, date as string) as any);
+    } else if (month) {
+      conditions.push(sql`${diaryEntries.entryDate} LIKE ${(month as string) + "-%"}` as any);
+    }
+
+    const entries = await db
+      .select({ id: diaryEntries.id, title: diaryEntries.title, entryDate: diaryEntries.entryDate, videoUrl: diaryEntries.videoUrl })
+      .from(diaryEntries)
+      .where(and(...conditions))
+      .orderBy(desc(diaryEntries.entryDate));
+
+    const videoEntries = entries.filter((e) => e.videoUrl);
+    if (videoEntries.length === 0) {
+      return res.status(404).json({ error: "No recordings found for this period" });
+    }
+
+    const archiver = (await import("archiver")).default;
+    const archive = archiver("zip", { zlib: { level: 6 } });
+
+    const label = ((date || month || "all") as string).replace(/[^a-zA-Z0-9-]/g, "_");
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="ai-diary-recordings-${label}.zip"`);
+
+    archive.pipe(res);
+
+    let added = 0;
+    for (const entry of videoEntries) {
+      if (!entry.videoUrl) continue;
+      const filePath = path.join(process.cwd(), entry.videoUrl);
+      if (fs.existsSync(filePath)) {
+        const safeName = entry.title.replace(/[^a-zA-Z0-9\s]/g, "").trim().replace(/\s+/g, "_").slice(0, 40);
+        const zipFilename = `${entry.entryDate}_${safeName || entry.id}.webm`;
+        archive.file(filePath, { name: zipFilename });
+        added++;
+      }
+    }
+
+    if (added === 0) {
+      archive.abort();
+      if (!res.headersSent) res.status(404).json({ error: "Recording files not found on disk" });
+      return;
+    }
+
+    await archive.finalize();
+  } catch (err: any) {
+    console.error("Video ZIP export failed:", err?.message);
+    if (!res.headersSent) res.status(500).json({ error: "Failed to create recording archive" });
+  }
+});
+
 // ── GET /diary/search ───────────────────────────────────────────────────────
 router.get("/search", async (req: Request, res: Response) => {
   try {
