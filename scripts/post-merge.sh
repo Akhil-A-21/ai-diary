@@ -5,7 +5,7 @@ pnpm install --frozen-lockfile=false
 
 if [ -n "$GITHUB_TOKEN" ]; then
   REPO_URL="https://${GITHUB_TOKEN}@github.com/Akhil-A-21/ai-diary.git"
-  git push --force "$REPO_URL" main
+  git push --force "$REPO_URL" main || echo "WARNING: GitHub push failed. Check that GITHUB_TOKEN has the required scopes."
 else
   echo "GITHUB_TOKEN not set — skipping GitHub push"
 fi
